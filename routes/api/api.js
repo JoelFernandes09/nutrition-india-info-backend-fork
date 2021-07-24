@@ -111,8 +111,8 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // ***********************URL_1b***********************************//
-  router.get('/url_1b', (req, res) => {
+  // ***********************URL_1d***********************************//
+  router.get('/url_1d', (req, res) => {
 
     const selCategory = req.body.selCategory
     const selLifeycle = req.body.selLifeycle
@@ -197,8 +197,8 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // ***********************URL_2b**********************************//
-  router.get('/url_2b', (req, res) => {
+  // ***********************URL_2d**********************************//
+  router.get('/url_2d', (req, res) => {
 
     const selCategory = req.body.selCategory
     const selLifeycle = req.body.selLifeycle
@@ -278,8 +278,8 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // **********************URL_3b*************************************//
-  router.get('/url_3b', (req, res) => {
+  // **********************URL_3d*************************************//
+  router.get('/url_3d', (req, res) => {
 
     const subgroup_id = req.body.subgroup_id
     const indicator_id= req.body.indicator_id
@@ -310,8 +310,8 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // ***********************URL_4a*************************************//
-  router.get('/url_4a', (req, res) => {
+  // ***********************URL_4d*************************************//
+  router.get('/url_4d', (req, res) => {
 
     var strQuery = `fl=area_id%2Carea_parent_id%2Carea_code%2Carea_name%2Carea_level&group.field=area_id&group.main=true&group=true&omitHeader=true&q=*%3A*&rows=7000&sort=area_id%20asc`
 
