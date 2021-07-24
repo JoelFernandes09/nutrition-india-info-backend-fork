@@ -1,6 +1,6 @@
 const express = require("express");
 const SolrNode = require('solr-node');
-const app = express()
+
 const router = express.Router();
 const keys = require('../../config/keys');
 
@@ -63,7 +63,7 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // *********************** URL_1a ********************************* //
+  // *********************** URL_1u ********************************* //
 
   router.get('/url_1u', (req, res) => {
     // console.log('Inside URL1');
@@ -151,7 +151,7 @@ router.get('/url', (req, res) => {
   });
 
 
-  // *********************** URL_2a ********************************* //
+  // *********************** URL_2u ********************************* //
   router.get('/url_2u', (req, res) => {
     // console.log('Inside URL2');
     const area = req.query.area;
@@ -236,7 +236,7 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // *********************** URL_3a ********************************* //
+  // *********************** URL_3u ********************************* //
   router.get('/url_3u', (req, res) => {
     // console.log('Inside URL3');
     const indicator = req.query.indicator;
@@ -281,8 +281,7 @@ router.get('/url', (req, res) => {
   // **********************URL_3d*************************************//
   router.get('/url_3d', (req, res) => {
 
-    const subgroup_id = req.query.subgroup_id
-    const indicator_id= req.query.indicator_id
+    const val= req.query.val
 
     var strQuery = `fl=unit_id%2Cunit_name%2Cindicator_id&fq=indicator_id%3A${val}&fq=subgroup_id%3A6&group.field=unit_id&group.main=true&group=true&omitHeader=true&q=*%3A*`
 
@@ -342,7 +341,7 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // *********************** URL_4b ********************************* //
+  // *********************** URL_4b_u ********************************* //
   router.get('/url_4b_u', (req, res) => {
     // console.log('Inside URL4b');
     const parentArea = req.query.parentArea;
@@ -385,7 +384,7 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // *********************** URL_4c ********************************* //
+  // *********************** URL_4c_u ********************************* //
   router.get('/url_4c_u', (req, res) => {
     // console.log('Inside URL4c');
     const area = req.query.area;
@@ -428,7 +427,7 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // *********************** URL_5 ********************************* //
+  // *********************** URL_5u ********************************* //
   router.get('/url_5u', (req, res) => {
     // console.log('Inside URL5');
     const indicator = req.query.indicator;
@@ -476,7 +475,7 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // *********************** URL_6 ********************************* //
+  // *********************** URL_6u ********************************* //
   router.get('/url_6u', (req, res) => {
     // console.log("INSIDE URL 6")
   const selCategory = req.query.selCategory;
@@ -495,7 +494,7 @@ router.get('/url', (req, res) => {
   });
 });
 
-  // *********************** URL_8 ********************************* //
+  // *********************** URL_8u ********************************* //
   router.get('/url_8u', (req, res) => {
     // console.log('Inside URL8');
     const indiVal = req.query.indiVal;
@@ -527,7 +526,7 @@ router.get('/url', (req, res) => {
     });
   });
 
-  // *********************** URL_9 ********************************* //
+  // *********************** URL_9u ********************************* //
   router.get('/url_9u', (req, res) => {
     // console.log('Inside URL9 ');
     const selLifeycle = req.query.selLifeycle;
