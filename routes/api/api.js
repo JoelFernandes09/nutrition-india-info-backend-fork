@@ -142,10 +142,10 @@ router.get('/url', (req, res) => {
 
     client.search(strQuery, function (err, result) {
         if (err) {
-            // console.log(err);
+            console.log(err);
             return;
         }
-        // console.log('Response:', result.response);
+        console.log('Response:', result.response);
         res.send({ result: result.response });
     });
   });
