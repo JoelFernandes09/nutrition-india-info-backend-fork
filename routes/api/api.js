@@ -1,5 +1,6 @@
-const express = require("express");
+const express = require('express');
 const SolrNode = require('solr-node');
+const CryptoJS = require('crypto-js');
 
 const router = express.Router();
 const keys = require('../../config/keys');
@@ -9,17 +10,20 @@ const solr_domain = keys.solr_domain;
 const solr_core = keys.solr_core;
 
 const client = new SolrNode({
-    host: solr_domain,
-    port: '8983',
-    core: solr_core,
-    protocol: 'http',
-  });
-
-
+  host: solr_domain,
+  port: '8983',
+  core: solr_core,
+  protocol: 'http',
+});
 
 // **********************EXPERIMENT********************************** //
 router.get('/url', (req, res) => {
-    // console.log('Inside URL1');
+  // console.log('Inside URL1');
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+  if (decryptedData === process.env.SECRET_DATA) {
     const area_id = req.query.area_id;
     const indicator_id = req.query.indicator_id;
     const subgroup_id = 6;
@@ -61,12 +65,20 @@ router.get('/url', (req, res) => {
       // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
-  // *********************** URL_1u ********************************* //
+// *********************** URL_1u ********************************* //
 
-  router.get('/url_1u', (req, res) => {
-    // console.log('Inside URL1');
+router.get('/url_1u', (req, res) => {
+  // console.log('Inside URL1');
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+  if (decryptedData === process.env.SECRET_DATA) {
     const area = req.query.area;
     const indicator = req.query.indicator;
     //   const subgroup_id = 6;
@@ -109,17 +121,24 @@ router.get('/url', (req, res) => {
       // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
-  // ***********************URL_1d***********************************//
-  router.get('/url_1d', (req, res) => {
+// ***********************URL_1d***********************************//
+router.get('/url_1d', (req, res) => {
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
-    const selCategory = req.query.selCategory
-    const selLifeycle = req.query.selLifeycle
-    const value = req.query.area_id
-    const selIndicator = req.query.selIndicator
+  if (decryptedData === process.env.SECRET_DATA) {
+    const selCategory = req.query.selCategory;
+    const selLifeycle = req.query.selLifeycle;
+    const value = req.query.area_id;
+    const selIndicator = req.query.selIndicator;
 
-    var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifeycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${selIndicator}&fq=subgroup_id%3A6&fq=area_id%3A${value}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`
+    var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifeycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${selIndicator}&fq=subgroup_id%3A6&fq=area_id%3A${value}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
 
     // var strQuery =client.query()
     // .q({
@@ -141,19 +160,26 @@ router.get('/url', (req, res) => {
     // .groupQuery({field:'timeperiod_id',main:true,omitHeader:true})
 
     client.search(strQuery, function (err, result) {
-        if (err) {
-            console.log(err);
-            return;
-        }
-        console.log('Response:', result.response);
-        res.send({ result: result.response });
+      if (err) {
+        console.log(err);
+        return;
+      }
+      console.log('Response:', result.response);
+      res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
+// *********************** URL_2u ********************************* //
+router.get('/url_2u', (req, res) => {
+  // console.log('Inside URL2');
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
-  // *********************** URL_2u ********************************* //
-  router.get('/url_2u', (req, res) => {
-    // console.log('Inside URL2');
+  if (decryptedData === process.env.SECRET_DATA) {
     const area = req.query.area;
     const indicator = req.query.indicator;
     const timeperiod = req.query.timeperiod;
@@ -195,17 +221,24 @@ router.get('/url', (req, res) => {
       // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
-  // ***********************URL_2d**********************************//
-  router.get('/url_2d', (req, res) => {
+// ***********************URL_2d**********************************//
+router.get('/url_2d', (req, res) => {
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
-    const selCategory = req.query.selCategory
-    const selLifeycle = req.query.selLifeycle
-    const val = req.query.indicator_id
-    const selArea = req.query.selArea
+  if (decryptedData === process.env.SECRET_DATA) {
+    const selCategory = req.query.selCategory;
+    const selLifeycle = req.query.selLifeycle;
+    const val = req.query.indicator_id;
+    const selArea = req.query.selArea;
 
-    var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifeycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${val}&fq=subgroup_id%3A6&fq=area_id%3A${selArea}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`
+    var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifeycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${val}&fq=subgroup_id%3A6&fq=area_id%3A${selArea}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
 
     // var strQuery =client.query()
     // .q({
@@ -227,18 +260,26 @@ router.get('/url', (req, res) => {
     // .groupQuery({field:'timeperiod_id',main:true,omitHeader:true})
 
     client.search(strQuery, function (err, result) {
-        if (err) {
-            // console.log(err);
-            return;
-        }
-        // console.log('Response:', result.response);
-        res.send({ result: result.response });
+      if (err) {
+        // console.log(err);
+        return;
+      }
+      // console.log('Response:', result.response);
+      res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
-  // *********************** URL_3u ********************************* //
-  router.get('/url_3u', (req, res) => {
-    // console.log('Inside URL3');
+// *********************** URL_3u ********************************* //
+router.get('/url_3u', (req, res) => {
+  // console.log('Inside URL3');
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+  if (decryptedData === process.env.SECRET_DATA) {
     const indicator = req.query.indicator;
     const timeperiod = req.query.timeperiod;
     // const subgroup_id = req.query.subgroup_id
@@ -276,14 +317,21 @@ router.get('/url', (req, res) => {
       // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
-  // **********************URL_3d*************************************//
-  router.get('/url_3d', (req, res) => {
+// **********************URL_3d*************************************//
+router.get('/url_3d', (req, res) => {
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
-    const val= req.query.val
+  if (decryptedData === process.env.SECRET_DATA) {
+    const val = req.query.val;
 
-    var strQuery = `fl=unit_id%2Cunit_name%2Cindicator_id&fq=indicator_id%3A${val}&fq=subgroup_id%3A6&group.field=unit_id&group.main=true&group=true&omitHeader=true&q=*%3A*`
+    var strQuery = `fl=unit_id%2Cunit_name%2Cindicator_id&fq=indicator_id%3A${val}&fq=subgroup_id%3A6&group.field=unit_id&group.main=true&group=true&omitHeader=true&q=*%3A*`;
 
     // var strQuery =client.query()
     // .q({indicator_id:indicator_id,subgroup_id:subgroup_id})
@@ -300,50 +348,57 @@ router.get('/url', (req, res) => {
     // .groupQuery({field:'unit_id',main:true})
 
     client.search(strQuery, function (err, result) {
-        if (err) {
-            // console.log(err);
-            return;
-        }
-        // console.log('Response:', result.response);
-        res.send({ result: result.response });
+      if (err) {
+        // console.log(err);
+        return;
+      }
+      // console.log('Response:', result.response);
+      res.send({ result: result.response });
     });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
+
+// ***********************URL_4d*************************************//
+router.get('/url_4d', (req, res) => {
+  var strQuery = `fl=area_id%2Carea_parent_id%2Carea_code%2Carea_name%2Carea_level&group.field=area_id&group.main=true&group=true&omitHeader=true&q=*%3A*&rows=7000&sort=area_id%20asc`;
+
+  // var strQuery =client.query()
+  // .q('*:*')
+  // .fl([
+  //     'area_id',
+  //     'area_parent_id',
+  //     'area_code',
+  //     'area_name',
+  //     'area_level'
+  // ])
+  // .addParams({
+  //     wt: 'json',
+  //     indent: true,
+  // })
+  // .rows(7000)
+  // .sort({'area_id':'asc'})
+  // .groupQuery({field:'area_id',main:true})
+
+  client.search(strQuery, function (err, result) {
+    if (err) {
+      // console.log(err);
+      return;
+    }
+    // console.log('Response:', result.response);
+    res.send({ result: result.response });
   });
+});
 
-  // ***********************URL_4d*************************************//
-  router.get('/url_4d', (req, res) => {
+// *********************** URL_4b_u ********************************* //
+router.get('/url_4b_u', (req, res) => {
+  // console.log('Inside URL4b');
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
-    var strQuery = `fl=area_id%2Carea_parent_id%2Carea_code%2Carea_name%2Carea_level&group.field=area_id&group.main=true&group=true&omitHeader=true&q=*%3A*&rows=7000&sort=area_id%20asc`
-
-    // var strQuery =client.query()
-    // .q('*:*')
-    // .fl([
-    //     'area_id',
-    //     'area_parent_id',
-    //     'area_code',
-    //     'area_name',
-    //     'area_level'
-    // ])
-    // .addParams({
-    //     wt: 'json',
-    //     indent: true,
-    // })
-    // .rows(7000)
-    // .sort({'area_id':'asc'})
-    // .groupQuery({field:'area_id',main:true})
-
-    client.search(strQuery, function (err, result) {
-        if (err) {
-            // console.log(err);
-            return;
-        }
-        // console.log('Response:', result.response);
-        res.send({ result: result.response });
-    });
-  });
-
-  // *********************** URL_4b_u ********************************* //
-  router.get('/url_4b_u', (req, res) => {
-    // console.log('Inside URL4b');
+  if (decryptedData === process.env.SECRET_DATA) {
     const parentArea = req.query.parentArea;
     const indicator = req.query.indicator;
     const timeperiod = req.query.timeperiod;
@@ -382,11 +437,19 @@ router.get('/url', (req, res) => {
       // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
-  // *********************** URL_4c_u ********************************* //
-  router.get('/url_4c_u', (req, res) => {
-    // console.log('Inside URL4c');
+// *********************** URL_4c_u ********************************* //
+router.get('/url_4c_u', (req, res) => {
+  // console.log('Inside URL4c');
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+  if (decryptedData === process.env.SECRET_DATA) {
     const area = req.query.area;
     const indicator = req.query.indicator;
     const timeperiod = req.query.timeperiod;
@@ -425,11 +488,19 @@ router.get('/url', (req, res) => {
       // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
-  // *********************** URL_5u ********************************* //
-  router.get('/url_5u', (req, res) => {
-    // console.log('Inside URL5');
+// *********************** URL_5u ********************************* //
+router.get('/url_5u', (req, res) => {
+  // console.log('Inside URL5');
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+  if (decryptedData === process.env.SECRET_DATA) {
     const indicator = req.query.indicator;
     const timeperiod = req.query.timeperiod;
     //   const subgroup_id = req.query.subgroup_id;
@@ -473,47 +544,64 @@ router.get('/url', (req, res) => {
       // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
-  });
-
-  // *********************** URL_6u ********************************* //
-  router.get('/url_6u', (req, res) => {
-    // console.log("INSIDE URL 6")
-  const selCategory = req.query.selCategory;
-  const selLifecycle = req.query.selLifecycle;
-
-  const myQuery = `fl=value:indicator_id%2Ctitle:indicator_short_name%2Cindi_sense%2Cindicator_name%2Cnotes&fq=category_id%3A${selCategory}&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&q=*%3A*&rows=100&sort=indicator_id%20asc&group=true&group.field=indicator_id&group.limit=1&group.main=true&omitHeader=true`;
-
-  client.search(myQuery, function (err, result) {
-    // console.log('Query', myQuery);
-    if (err) {
-      // console.log(err);
-      res.send({ message: 'unable to process' });
-    }
-    // console.log('Response:', result.response);
-    res.send({ result: result.response });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
 });
 
-  // *********************** URL_8u ********************************* //
-  router.get('/url_8u', (req, res) => {
+// *********************** URL_6u ********************************* //
+router.get('/url_6u', (req, res) => {
+  // console.log("INSIDE URL 6")
+
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+  if (decryptedData === process.env.SECRET_DATA) {
+    const selCategory = req.query.selCategory;
+    const selLifecycle = req.query.selLifecycle;
+
+    const myQuery = `fl=value:indicator_id%2Ctitle:indicator_short_name%2Cindi_sense%2Cindicator_name%2Cnotes&fq=category_id%3A${selCategory}&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&q=*%3A*&rows=100&sort=indicator_id%20asc&group=true&group.field=indicator_id&group.limit=1&group.main=true&omitHeader=true`;
+
+    client.search(myQuery, function (err, result) {
+      // console.log('Query', myQuery);
+      if (err) {
+        // console.log(err);
+        res.send({ message: 'unable to process' });
+      }
+      // console.log('Response:', result.response);
+      res.send({ result: result.response });
+    });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
+
+// *********************** URL_8u ********************************* //
+router.get('/url_8u', (req, res) => {
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+  if (decryptedData === process.env.SECRET_DATA) {
     // console.log('Inside URL8');
     const indiVal = req.query.indiVal;
 
-  //   const strQuery = client
-  //     .query()
-  //     .q({
-  //       indicator_id: indicator_id,
-  //       subgroup_id: 6,
-  //     })
-  //     .fl(['indicator_id', 'unit_id', 'unit_name'])
-  //     .groupQuery({ field: 'unit_id', main: true })
-  //     .addParams({
-  //       wt: 'json',
-  //       indent: true,
-  //     })
-  //     .rows(10000);
+    //   const strQuery = client
+    //     .query()
+    //     .q({
+    //       indicator_id: indicator_id,
+    //       subgroup_id: 6,
+    //     })
+    //     .fl(['indicator_id', 'unit_id', 'unit_name'])
+    //     .groupQuery({ field: 'unit_id', main: true })
+    //     .addParams({
+    //       wt: 'json',
+    //       indent: true,
+    //     })
+    //     .rows(10000);
 
-      const cQuery = `fl=unit_id%2Cunit_name%2Cindicator_id&fq=indicator_id%3A${indiVal}&fq=subgroup_id%3A6&group.field=unit_id&group.main=true&group=true&omitHeader=true&q=*%3A*`
+    const cQuery = `fl=unit_id%2Cunit_name%2Cindicator_id&fq=indicator_id%3A${indiVal}&fq=subgroup_id%3A6&group.field=unit_id&group.main=true&group=true&omitHeader=true&q=*%3A*`;
 
     client.search(cQuery, function (err, result) {
       // console.log('Query', cQuery);
@@ -524,11 +612,19 @@ router.get('/url', (req, res) => {
       // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
-  // *********************** URL_9u ********************************* //
-  router.get('/url_9u', (req, res) => {
-    // console.log('Inside URL9 ');
+// *********************** URL_9u ********************************* //
+router.get('/url_9u', (req, res) => {
+  // console.log('Inside URL9 ');
+  const token = req.get('Authorization');
+  const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+  const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+  if (decryptedData === process.env.SECRET_DATA) {
     const selLifeycle = req.query.selLifeycle;
     const selCategory = req.query.selCategory;
     const indiVal = req.query.indiVal;
@@ -545,7 +641,9 @@ router.get('/url', (req, res) => {
       // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
-  });
+  } else {
+    res.send({ result: 'Invalid credentials!!' });
+  }
+});
 
-
-  module.exports = router;
+module.exports = router;
