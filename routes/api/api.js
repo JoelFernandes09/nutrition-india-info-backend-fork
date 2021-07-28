@@ -66,7 +66,7 @@ router.get('/url', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -122,7 +122,7 @@ router.get('/url_1u', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -168,7 +168,7 @@ router.get('/url_1d', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -222,7 +222,7 @@ router.get('/url_2u', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -268,7 +268,7 @@ router.get('/url_2d', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -318,7 +318,7 @@ router.get('/url_3u', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -356,7 +356,7 @@ router.get('/url_3d', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -438,7 +438,7 @@ router.get('/url_4b_u', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -489,7 +489,7 @@ router.get('/url_4c_u', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -545,7 +545,7 @@ router.get('/url_5u', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -573,7 +573,7 @@ router.get('/url_6u', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -613,7 +613,7 @@ router.get('/url_8u', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
@@ -642,7 +642,7 @@ router.get('/url_9u', (req, res) => {
       res.send({ result: result.response });
     });
   } else {
-    res.send({ result: 'Invalid credentials!!' });
+    res.status(401).json({ error: 'Invalid credentials!!' });
   }
 });
 
