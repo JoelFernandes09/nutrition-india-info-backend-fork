@@ -2,6 +2,7 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const helmet = require('helmet')
+const middleware = require('./utils/middleware')
 
 require('dotenv').config();
 
@@ -27,6 +28,8 @@ app.use(limiter);
 // app.disable('x-powered-by')
 app.use(helmet())
 app.use('/api/v1', api);
+
+app.use(middleware.errorHandler)
 
 // PORTs
 const PORT = 5000;
