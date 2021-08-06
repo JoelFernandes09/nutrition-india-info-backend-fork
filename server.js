@@ -24,7 +24,7 @@ const limiter = rateLimit({
 });
 
 //  apply to all requests
-app.use(limiter);
+//  app.use(limiter);
 // app.disable('x-powered-by')
 app.use(helmet())
 app.use('/v1', api);
