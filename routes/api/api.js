@@ -139,11 +139,11 @@ router.get('/url_1d', (req, res, next) => {
 
     if (decryptedData === process.env.SECRET_DATA) {
       const selCategory = req.query.selCategory;
-      const selLifeycle = req.query.selLifeycle;
+      const selLifecycle = req.query.selLifecycle;
       const value = req.query.area_id;
       const selIndicator = req.query.selIndicator;
 
-      var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifeycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${selIndicator}&fq=subgroup_id%3A6&fq=area_id%3A${value}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
+      var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${selIndicator}&fq=subgroup_id%3A6&fq=area_id%3A${value}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
 
       // var strQuery =client.query()
       // .q({
@@ -669,12 +669,12 @@ router.get('/url_9u', (req, res, next) => {
     const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
     if (decryptedData === process.env.SECRET_DATA) {
-      const selLifeycle = req.query.selLifeycle;
+      const selLifecycle = req.query.selLifecycle;
       const selCategory = req.query.selCategory;
       const indiVal = req.query.indiVal;
       const selArea = req.query.selArea;
 
-      const cQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifeycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${indiVal}&fq=subgroup_id%3A6&fq=area_id%3A${selArea}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
+      const cQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${indiVal}&fq=subgroup_id%3A6&fq=area_id%3A${selArea}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
 
       client.search(cQuery, function (err, result) {
         // console.log('Query', cQuery);
