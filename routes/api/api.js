@@ -111,7 +111,7 @@ router.get('/url_1u', (req, res, next) => {
       //     .sort({ timeperiod_id: 'asc' })
       //     .rows(400);
 
-      const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&omitHeader=true&q=*%3A*&rows=400&sort=timeperiod_id%20asc`;
+      const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicator}&omitHeader=true&q=*%3A*&rows=400&sort=timeperiod_id%20asc`;
 
       client.search(cQuery, function (err, result) {
         // console.log('Query', cQuery);
@@ -139,11 +139,11 @@ router.get('/url_1d', (req, res, next) => {
 
     if (decryptedData === process.env.SECRET_DATA) {
       const selCategory = req.query.selCategory;
-      const selLifeycle = req.query.selLifeycle;
+      const selLifecycle = req.query.selLifecycle;
       const value = req.query.area_id;
       const selIndicator = req.query.selIndicator;
 
-      var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifeycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${selIndicator}&fq=subgroup_id%3A6&fq=area_id%3A${value}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
+      var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${selIndicator}&fq=subgroup_id%3A6&fq=area_id%3A${value}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
 
       // var strQuery =client.query()
       // .q({
@@ -597,7 +597,7 @@ router.get('/url_6u', (req, res, next) => {
       const selCategory = req.query.selCategory;
       const selLifecycle = req.query.selLifecycle;
 
-      const myQuery = `fl=value:indicator_id%2Ctitle:indicator_short_name%2Cindi_sense%2Cindicator_name%2Cnotes&fq=category_id%3A${selCategory}&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&q=*%3A*&rows=100&sort=indicator_id%20asc&group=true&group.field=indicator_id&group.limit=1&group.main=true&omitHeader=true`;
+      const myQuery = `fl=value:indicator_id%2Ctitle:indicator_short_name%2Cindi_sense%2Cindicator_name%2Cnotes%2Cunit_id%2Cunit_name&fq=category_id%3A${selCategory}&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&q=*%3A*&rows=100&sort=indicator_id%20asc&group=true&group.field=indicator_id&group.limit=1&group.main=true&omitHeader=true`;
 
       client.search(myQuery, function (err, result) {
         // console.log('Query', myQuery);
@@ -669,12 +669,12 @@ router.get('/url_9u', (req, res, next) => {
     const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
     if (decryptedData === process.env.SECRET_DATA) {
-      const selLifeycle = req.query.selLifeycle;
+      const selLifecycle = req.query.selLifecycle;
       const selCategory = req.query.selCategory;
       const indiVal = req.query.indiVal;
       const selArea = req.query.selArea;
 
-      const cQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifeycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${indiVal}&fq=subgroup_id%3A6&fq=area_id%3A${selArea}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
+      const cQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${indiVal}&fq=subgroup_id%3A6&fq=area_id%3A${selArea}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
 
       client.search(cQuery, function (err, result) {
         // console.log('Query', cQuery);
