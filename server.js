@@ -3,6 +3,7 @@ const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const helmet = require('helmet')
 const middleware = require('./utils/middleware')
+const auth = require('./utils/middleware').authHandler
 
 require('dotenv').config();
 
@@ -13,6 +14,8 @@ const app = express();
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use(middleware.authHandler)
 
 const limiter = rateLimit({
   windowMs: 15 * 1000 * 60, // 15 minutes
@@ -28,6 +31,7 @@ app.use(limiter);
 // app.disable('x-powered-by')
 app.use(helmet())
 app.use('/v1', api);
+
 
 app.use(middleware.errorHandler)
 
