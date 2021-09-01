@@ -16,17 +16,21 @@ const errorHandler = (error, request, response, next) => {
 };
 
 const authHandler = (req, res, next) => {
-  try {
-    const token = req.get('Authorization');
-    const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
-    const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-    if (decryptedData !== process.env.SECRET_DATA) {
-      throw 'invalid access';
-    } else {
-      next();
+  if (!req.get('Authorization')) {
+    res.status(401).send({ error: 'Unauthorized Access!!' });
+  } else {
+    try {
+      const token = req.get('Authorization');
+      const bytes = CryptoJS.AES.decrypt(token, process.env.KEY);
+      const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      if (decryptedData !== process.env.SECRET_DATA) {
+        throw 'invalid access';
+      } else {
+        next();
+      }
+    } catch (err) {
+      res.status(401).send({ error: 'Invalid request' });
     }
-  } catch (err) {
-    res.status(401).send({error: 'Invalid request'})
   }
 };
 
