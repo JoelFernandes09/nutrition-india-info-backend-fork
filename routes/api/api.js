@@ -346,7 +346,7 @@ router.get('/url_6u', (req, res, next) => {
         .send({ message: 'Invalid category id or lifecycle id' });
     }
 
-    const myQuery = `fl=value:indicator_id%2Ctitle:indicator_short_name%2Cindi_sense%2Cindicator_name%2Cnotes%2Cunit_id%2Cunit_name&fq=category_id%3A${selCategory}&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&q=*%3A*&rows=100&sort=indicator_id%20asc&group=true&group.field=indicator_id&group.limit=1&group.main=true&omitHeader=true`;
+    const myQuery = `fl=value:indicator_id%2Ctitle:indicator_short_name%2Cindi_sense%2Cindicator_name%2Cnotes%2Cunit_id%2Cunit_name&fq=category_id%3A${selCategory}&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&q=*%3A*&rows=100&sort=indicator_order%20asc&group=true&group.field=indicator_id&group.limit=1&group.main=true&omitHeader=true`;
 
     client.search(myQuery, function (err, result) {
       // console.log('Query', myQuery);
