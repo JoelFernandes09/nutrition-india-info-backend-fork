@@ -50,7 +50,7 @@ router.get('/url', (req, res) => {
       indent: true,
     })
     .sort({ area_level: 'asc' })
-    .rows(400);
+    .rows(404);
 
   client.search(strQuery, function (err, result) {
     // console.log('Query', strQuery);
@@ -72,10 +72,10 @@ router.get('/url_1u', (req, res, next) => {
     const indicator = req.query.indicator;
 
     if (!process.env.indicatorId.includes(indicator)) {
-      return res.status(400).send({ message: 'Invalid indicator id' });
+      return res.status(404).send({ message: 'Invalid indicator id' });
     }
 
-    const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicator}&omitHeader=true&q=*%3A*&rows=400&sort=timeperiod_id%20asc`;
+    const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicator}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
 
     client.search(cQuery, function (err, result) {
       // console.log('Query', cQuery);
@@ -104,7 +104,7 @@ router.get('/url_1d', (req, res, next) => {
       !process.env.lifecycleId.includes(selLifecycle) ||
       !process.env.indicatorId.includes(selIndicator)
     ) {
-      return res.status(400).send({
+      return res.status(404).send({
         message: 'Invalid category id or lifecycle id or indicator id',
       });
     }
@@ -133,7 +133,7 @@ router.get('/url_2u', (req, res, next) => {
     const timeperiod = req.query.timeperiod;
 
     if (!process.env.indicatorId.includes(indicator)) {
-      return res.status(400).send({ message: 'Invalid indicator id' });
+      return res.status(404).send({ message: 'Invalid indicator id' });
     }
     const cQuery = `fl=unit_id%2Cunit_name%2Csubgroup_name%2Csub_category%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name_subgroup_category&fq=area_id%3A${area}&fq=indicator_id%3A${indicator}&fq=timeperiod_id%3A${timeperiod}&omitHeader=true&q=*%3A*&rows=100&sort=subgroup_order%20asc`;
 
@@ -164,7 +164,7 @@ router.get('/url_2d', (req, res, next) => {
       !process.env.lifecycleId.includes(selLifecycle) ||
       !process.env.indicatorId.includes(val)
     ) {
-      return res.status(400).send({
+      return res.status(404).send({
         message: 'Invalid category id or lifecycle id or indicator id',
       });
     }
@@ -192,7 +192,7 @@ router.get('/url_3u', (req, res, next) => {
     const timeperiod = req.query.timeperiod;
 
     if (!process.env.indicatorId.includes(indicator)) {
-      return res.status(400).send({ message: 'Invalid indicator id' });
+      return res.status(404).send({ message: 'Invalid indicator id' });
     }
     const cQuery = `fl=area_id%2Carea_code%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num&fq=area_level%3A2&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&fq=timeperiod_id%3A${timeperiod}&rows=100&omitHeader=true&q=*%3A*`;
 
@@ -216,7 +216,7 @@ router.get('/url_3d', (req, res, next) => {
     const val = req.query.val;
 
     if (!process.env.indicatorId.includes(val)) {
-      return res.status(400).send({ message: 'Invalid indicator id' });
+      return res.status(404).send({ message: 'Invalid indicator id' });
     }
 
     var strQuery = `fl=unit_id%2Cunit_name%2Cindicator_id&fq=indicator_id%3A${val}&fq=subgroup_id%3A6&group.field=unit_id&group.main=true&group=true&omitHeader=true&q=*%3A*`;
@@ -257,7 +257,7 @@ router.get('/url_4b_u', (req, res, next) => {
     const timeperiod = req.query.timeperiod;
 
     if (!process.env.indicatorId.includes(indicator)) {
-      return res.status(400).send({ message: 'Invalid indicator id' });
+      return res.status(404).send({ message: 'Invalid indicator id' });
     }
     const cQuery = `fl=area_id%2Carea_code%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num&fq=area_parent_id%3A${parentArea}&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&fq=timeperiod_id%3A${timeperiod}&rows=1000&omitHeader=true&q=*%3A*`;
 
@@ -284,7 +284,7 @@ router.get('/url_4c_u', (req, res, next) => {
     const timeperiod = req.query.timeperiod;
 
     if (!process.env.indicatorId.includes(indicator)) {
-      return res.status(400).send({ message: 'Invalid indicator id' });
+      return res.status(404).send({ message: 'Invalid indicator id' });
     }
 
     const cQuery = `fl=area_id%2Carea_code%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num&fq=area_parent_id%3A${area}&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&fq=timeperiod_id%3A${timeperiod}&rows=1000&omitHeader=true&q=*%3A*`;
@@ -311,7 +311,7 @@ router.get('/url_5u', (req, res, next) => {
     const timeperiod = req.query.timeperiod;
 
     if (!process.env.indicatorId.includes(indicator)) {
-      return res.status(400).send({ message: 'Invalid indicator id' });
+      return res.status(404).send({ message: 'Invalid indicator id' });
     }
 
     const cQuery = `fl=indicator_id%2Cindicator_name%2Ctimeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Carea_id%2Carea_code%2Carea_name%2Carea_level&fq=area_level%3A3&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&fq=timeperiod_id%3A${timeperiod}&q=*%3A*&rows=10000&omitHeader=true`;
@@ -342,7 +342,7 @@ router.get('/url_6u', (req, res, next) => {
       !process.env.lifecycleId.includes(selLifecycle)
     ) {
       return res
-        .status(400)
+        .status(404)
         .send({ message: 'Invalid category id or lifecycle id' });
     }
 
@@ -369,7 +369,7 @@ router.get('/url_8u', (req, res, next) => {
     const indiVal = req.query.indiVal;
 
     if (!process.env.indicatorId.includes(indiVal)) {
-      return res.status(400).send({ message: 'Invalid indicator id' });
+      return res.status(404).send({ message: 'Invalid indicator id' });
     }
     const cQuery = `fl=unit_id%2Cunit_name%2Cindicator_id&fq=indicator_id%3A${indiVal}&fq=subgroup_id%3A6&group.field=unit_id&group.main=true&group=true&omitHeader=true&q=*%3A*`;
 
@@ -401,7 +401,7 @@ router.get('/url_9u', (req, res, next) => {
       !process.env.lifecycleId.includes(selLifecycle) ||
       !process.env.indicatorId.includes(indiVal)
     ) {
-      return res.status(400).send({
+      return res.status(404).send({
         message: 'Invalid category id or lifecycle id or indicator id',
       });
     }
