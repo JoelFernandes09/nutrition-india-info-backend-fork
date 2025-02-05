@@ -819,12 +819,13 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
     'Urban': subgroupIDs.Urban
   };
 
-  let findValue, value, chartTotal = '';
+  let findValue, value, isDataAvailable = {};
   try {
     const area = req.query.area;
     const indicators = req.query.indicators ? JSON.parse(req.query.indicators) : null;
 
     await Promise.all(Object.keys(indicators).map(async (indicator) => {
+      isDataAvailable[`${indicator}`] = false;
       if (indicator == 'AdolescentGirlsNutrition' || indicator == 'WomenNutrition') {
         for (const extraIndicator in indicators[`${indicator}`]) {
           const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicators[`${indicator}`][`${extraIndicator}`]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
@@ -833,7 +834,7 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
             findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodsRequired[`${indicator}`][timePeriod]);
             if (!findValue?.data_value) value = '';
             else value = findValue.data_value;
-            chartTotal += value;
+            if (!isNaN(parseFloat(value))) isDataAvailable[`${indicator}`] = true;
 
             const index = page3Values[`${indicator}`].findIndex(val => val.year === timePeriod);
             if (index != -1) {
@@ -841,8 +842,8 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
             } else page3Values[`${indicator}`].push({ year: timePeriod, [`${extraIndicator}`]: value });
           }
         }
-        if (isNaN(parseFloat(chartTotal))) page3Values[`${indicator}Data`] = false;
-        chartTotal = '';
+
+        page3Values[`${indicator}Data`] = isDataAvailable[`${indicator}`];
       } else if (indicator == 'ChildFever' || indicator == 'ChildARI' || indicator == 'ChildDiarrhea') {
         const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicators[`${indicator}`]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
         const result = await client.search(cQuery);
@@ -851,7 +852,7 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
             findValue = result.response.docs.find(data => data.subgroup_id === subgroupsRequired[subgroup] && data.timeperiod_id === timeperiodsRequired[`${indicator}`][timePeriod]);
             if (!findValue?.data_value) value = '';
             else value = findValue.data_value;
-            chartTotal += value;
+            if (!isNaN(parseFloat(value))) isDataAvailable[`${indicator}`] = true;
 
             if (subgroupsRequired[subgroup] === subgroupIDs.All) {
               page3Values[`${indicator}`].push({ year: timePeriod, 'Total': value });
@@ -864,8 +865,7 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
           }
         }
 
-        if (isNaN(parseFloat(chartTotal))) page3Values[`${indicator}Data`] = false;
-        chartTotal = '';
+        page3Values[`${indicator}Data`] = isDataAvailable[`${indicator}`];
       } else {
         const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicators[`${indicator}`]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
         const result = await client.search(cQuery);
@@ -874,7 +874,7 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
           findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodsRequired[`${indicator}`][timePeriod]);
           if (!findValue?.data_value) value = '';
           else value = findValue.data_value;
-          chartTotal += value;
+          if (!isNaN(parseFloat(value))) isDataAvailable[`${indicator}`] = true;
 
           const index = page3Values[`${indicator}`].findIndex(val => val.year === timePeriod);
           if (index != -1) {
@@ -882,8 +882,7 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
           } else page3Values[`${indicator}`].push({ year: timePeriod, 'Value': value ? value : null });
         }
 
-        if (isNaN(parseFloat(chartTotal))) page3Values[`${indicator}Data`] = false;
-        chartTotal = '';
+        page3Values[`${indicator}Data`] = isDataAvailable[`${indicator}`];
       }
     }));
 
