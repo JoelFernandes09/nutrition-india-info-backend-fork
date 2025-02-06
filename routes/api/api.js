@@ -521,8 +521,8 @@ router.get('/factsheet-generator/page1', async (req, res, next) => {
   try {
     const area = req.query.area;
     const indicators = req.query.indicators ? JSON.parse(req.query.indicators) : null;
-    let findValue, value;
     let response = await Promise.all(indicators.map(async (indicator) => {
+      let findValue, value;
       const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicator}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
       const result = await client.search(cQuery);
 
