@@ -473,8 +473,20 @@ const indicatorIDs = {
   'Household Intake of Protein': 48,
   'Expenditure on Food': 47,
   'Expenditure on Cereal': 46,
-  'Total Population 2024': 520,
   'Total Population 2011': 56,
+  'Total Population 2025': 521,
+  'Total Population 2024': 520,
+  'Total Population 2026': 522,
+  'Total Population 2027': 523,
+  'Total Population 2028': 524,
+  'Total Population 2029': 525,
+  'Total Population 2030': 526,
+  'Total Population 2031': 527,
+  'Total Population 2032': 528,
+  'Total Population 2033': 529,
+  'Total Population 2034': 530,
+  'Total Population 2035': 531,
+  'Total Population 2036': 532,
   'Child Population (<2 years)': 8,
   'Child Population (<5 years)': 9,
   'Households with access to banking services': 382,
@@ -1106,7 +1118,8 @@ router.get('/factsheet-generator/page5', async (req, res, next) => {
     HouseholdMarriedWomen: [],
     HouseholdMarriedWomenData: true,
     WomenWithBankAccount: [],
-    WomenWithBankAccountData: true
+    WomenWithBankAccountData: true,
+    CurrentYear: new Date().getFullYear(),
   };
 
   const timeperiodsRequired = {
@@ -1156,15 +1169,15 @@ router.get('/factsheet-generator/page5', async (req, res, next) => {
 
     await Promise.all(Object.keys(indicators).map(async (indicator) => {
       if (indicator === 'PopulationInformation') {
-        const cQuery2024 = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicatorIDs["Total Population 2024"]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
+        const cQueryCurrentYear = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicatorIDs[`Total Population ${page5Values.CurrentYear}`]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
         const cQuery2011 = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicatorIDs["Total Population 2011"]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
-        const result2024 = await client.search(cQuery2024);
+        const resultCurrentYear = await client.search(cQueryCurrentYear);
         const result2011 = await client.search(cQuery2011);
         let chartTotal = '', chartTotalArea = '', chartTotalGender = '', chartTotalCaste = '';
         let populationSize2024 = {};
         for (const subgroup in subgroupsRequired) {
           let existsPopulationSize2024, valuePopulationSize2024, existsPopulationSize2011, valuePopulationSize2011;
-          existsPopulationSize2024 = result2024.response.docs.find(data => data.subgroup_id === subgroupsRequired[subgroup]);
+          existsPopulationSize2024 = resultCurrentYear.response.docs.find(data => data.subgroup_id === subgroupsRequired[subgroup]);
           if (!existsPopulationSize2024?.data_value) valuePopulationSize2024 = '';
           else valuePopulationSize2024 = Math.ceil(existsPopulationSize2024.data_value / 1000);
           chartTotal += valuePopulationSize2024;
@@ -1183,15 +1196,15 @@ router.get('/factsheet-generator/page5', async (req, res, next) => {
             chartTotalArea += valuePopulationSize2024;
             chartTotalArea += valuePopulationSize2011;
             if (index != -1) {
-              page5Values.PopulationSizeArea[index] = { ...page5Values.PopulationSizeArea[index], '2024 (Projected)': valuePopulationSize2024, '2011': valuePopulationSize2011 };
-            } else page5Values.PopulationSizeArea.push({ category: subgroup, '2024 (Projected)': valuePopulationSize2024, '2011': valuePopulationSize2011 });
+              page5Values.PopulationSizeArea[index] = { ...page5Values.PopulationSizeArea[index], [`${page5Values.CurrentYear} (Projected)`]: valuePopulationSize2024, '2011': valuePopulationSize2011 };
+            } else page5Values.PopulationSizeArea.push({ category: subgroup, [`${page5Values.CurrentYear} (Projected)`]: valuePopulationSize2024, '2011': valuePopulationSize2011 });
           } else if (subgroupsRequired[subgroup] === subgroupIDs.Female || subgroupsRequired[subgroup] === subgroupIDs.Male) {
             const index = page5Values.PopulationSizeGender.findIndex(val => val.category === subgroup);
             chartTotalGender += valuePopulationSize2024;
             chartTotalGender += valuePopulationSize2011;
             if (index != -1) {
-              page5Values.PopulationSizeGender[index] = { ...page5Values.PopulationSizeGender[index], '2024 (Projected)': valuePopulationSize2024, '2011': valuePopulationSize2011 };
-            } else page5Values.PopulationSizeGender.push({ category: subgroup, '2024 (Projected)': valuePopulationSize2024, '2011': valuePopulationSize2011 });
+              page5Values.PopulationSizeGender[index] = { ...page5Values.PopulationSizeGender[index], [`${page5Values.CurrentYear} (Projected)`]: valuePopulationSize2024, '2011': valuePopulationSize2011 };
+            } else page5Values.PopulationSizeGender.push({ category: subgroup, [`${page5Values.CurrentYear} (Projected)`]: valuePopulationSize2024, '2011': valuePopulationSize2011 });
           } else {
             const index = page5Values.PopulationSizeCaste.findIndex(val => val.category === subgroup);
             chartTotalCaste += valuePopulationSize2024;
