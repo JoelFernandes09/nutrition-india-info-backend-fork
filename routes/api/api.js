@@ -473,20 +473,7 @@ const indicatorIDs = {
   'Household Intake of Protein': 48,
   'Expenditure on Food': 47,
   'Expenditure on Cereal': 46,
-  'Total Population 2011': 56,
-  'Total Population 2025': 521,
-  'Total Population 2024': 520,
-  'Total Population 2026': 522,
-  'Total Population 2027': 523,
-  'Total Population 2028': 524,
-  'Total Population 2029': 525,
-  'Total Population 2030': 526,
-  'Total Population 2031': 527,
-  'Total Population 2032': 528,
-  'Total Population 2033': 529,
-  'Total Population 2034': 530,
-  'Total Population 2035': 531,
-  'Total Population 2036': 532,
+  'Total Population': 56,
   'Child Population (<2 years)': 8,
   'Child Population (<5 years)': 9,
   'Households with access to banking services': 382,
@@ -516,7 +503,21 @@ const timeperiodIDs = {
   'SRS 2014': 18,
   'SRS 2016': 21,
   'SRS 2018': 25,
-  'SRS 2020': 27
+  'SRS 2020': 27,
+  'Population Projections 2021': 34,
+  'Population Projections 2024': 35,
+  'Population Projections 2025': 36,
+  'Population Projections 2026': 37,
+  'Population Projections 2027': 38,
+  'Population Projections 2028': 39,
+  'Population Projections 2029': 40,
+  'Population Projections 2030': 41,
+  'Population Projections 2031': 42,
+  'Population Projections 2032': 43,
+  'Population Projections 2033': 44,
+  'Population Projections 2034': 45,
+  'Population Projections 2035': 46,
+  'Population Projections 2036': 47,
 };
 
 const subgroupIDs = {
@@ -1169,45 +1170,44 @@ router.get('/factsheet-generator/page5', async (req, res, next) => {
 
     await Promise.all(Object.keys(indicators).map(async (indicator) => {
       if (indicator === 'PopulationInformation') {
-        const cQueryCurrentYear = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicatorIDs[`Total Population ${page5Values.CurrentYear}`]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
-        const cQuery2011 = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicatorIDs["Total Population 2011"]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
-        const resultCurrentYear = await client.search(cQueryCurrentYear);
-        const result2011 = await client.search(cQuery2011);
+        const cQueryTotalPopulation = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicatorIDs[`Total Population`]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
+        const resultTotalPopulation = await client.search(cQueryTotalPopulation);
+
         let chartTotal = '', chartTotalArea = '', chartTotalGender = '', chartTotalCaste = '';
         let populationSize2024 = {};
         for (const subgroup in subgroupsRequired) {
-          let existsPopulationSize2024, valuePopulationSize2024, existsPopulationSize2011, valuePopulationSize2011;
-          existsPopulationSize2024 = resultCurrentYear.response.docs.find(data => data.subgroup_id === subgroupsRequired[subgroup]);
-          if (!existsPopulationSize2024?.data_value) valuePopulationSize2024 = '';
-          else valuePopulationSize2024 = Math.ceil(existsPopulationSize2024.data_value / 1000);
-          chartTotal += valuePopulationSize2024;
+          let existsCurrentYearPopulationSize, valueCurrentYearPopulationSize, existsPopulationSize2011, valuePopulationSize2011;
+          existsCurrentYearPopulationSize = resultTotalPopulation.response.docs.find(data => data.subgroup_id === subgroupsRequired[subgroup] && data.timeperiod_id === timeperiodIDs[`Population Projections ${page5Values.CurrentYear}`]);
+          if (!existsCurrentYearPopulationSize?.data_value) valueCurrentYearPopulationSize = '';
+          else valueCurrentYearPopulationSize = Math.ceil(existsCurrentYearPopulationSize.data_value / 1000);
+          chartTotal += valueCurrentYearPopulationSize;
 
-          existsPopulationSize2011 = result2011.response.docs.find(data => data.subgroup_id === subgroupsRequired[subgroup]);
+          existsPopulationSize2011 = resultTotalPopulation.response.docs.find(data => data.subgroup_id === subgroupsRequired[subgroup] && data.timeperiod_id === timeperiodIDs['CENSUS 2011']);
           if (!existsPopulationSize2011?.data_value) valuePopulationSize2011 = '';
           else valuePopulationSize2011 = Math.ceil(existsPopulationSize2011.data_value / 1000);
           chartTotal += valuePopulationSize2011;
 
           if (subgroupsRequired[subgroup] === subgroupIDs.All) {
-            if (valuePopulationSize2024) page5Values.PopulationSize = new Intl.NumberFormat('en-IN').format(valuePopulationSize2024);
-            else page5Values.PopulationSize = valuePopulationSize2024;
+            if (valueCurrentYearPopulationSize) page5Values.PopulationSize = new Intl.NumberFormat('en-IN').format(valueCurrentYearPopulationSize);
+            else page5Values.PopulationSize = valueCurrentYearPopulationSize;
           } else if (subgroupsRequired[subgroup] === subgroupIDs.Rural || subgroupsRequired[subgroup] === subgroupIDs.Urban) {
-            populationSize2024[`${subgroup}`] = valuePopulationSize2024;
+            populationSize2024[`${subgroup}`] = valueCurrentYearPopulationSize;
             const index = page5Values.PopulationSizeArea.findIndex(val => val.category === subgroup);
-            chartTotalArea += valuePopulationSize2024;
+            chartTotalArea += valueCurrentYearPopulationSize;
             chartTotalArea += valuePopulationSize2011;
             if (index != -1) {
-              page5Values.PopulationSizeArea[index] = { ...page5Values.PopulationSizeArea[index], [`${page5Values.CurrentYear} (Projected)`]: valuePopulationSize2024, '2011': valuePopulationSize2011 };
-            } else page5Values.PopulationSizeArea.push({ category: subgroup, [`${page5Values.CurrentYear} (Projected)`]: valuePopulationSize2024, '2011': valuePopulationSize2011 });
+              page5Values.PopulationSizeArea[index] = { ...page5Values.PopulationSizeArea[index], [`${page5Values.CurrentYear} (Projected)`]: valueCurrentYearPopulationSize, '2011': valuePopulationSize2011 };
+            } else page5Values.PopulationSizeArea.push({ category: subgroup, [`${page5Values.CurrentYear} (Projected)`]: valueCurrentYearPopulationSize, '2011': valuePopulationSize2011 });
           } else if (subgroupsRequired[subgroup] === subgroupIDs.Female || subgroupsRequired[subgroup] === subgroupIDs.Male) {
             const index = page5Values.PopulationSizeGender.findIndex(val => val.category === subgroup);
-            chartTotalGender += valuePopulationSize2024;
+            chartTotalGender += valueCurrentYearPopulationSize;
             chartTotalGender += valuePopulationSize2011;
             if (index != -1) {
-              page5Values.PopulationSizeGender[index] = { ...page5Values.PopulationSizeGender[index], [`${page5Values.CurrentYear} (Projected)`]: valuePopulationSize2024, '2011': valuePopulationSize2011 };
-            } else page5Values.PopulationSizeGender.push({ category: subgroup, [`${page5Values.CurrentYear} (Projected)`]: valuePopulationSize2024, '2011': valuePopulationSize2011 });
+              page5Values.PopulationSizeGender[index] = { ...page5Values.PopulationSizeGender[index], [`${page5Values.CurrentYear} (Projected)`]: valueCurrentYearPopulationSize, '2011': valuePopulationSize2011 };
+            } else page5Values.PopulationSizeGender.push({ category: subgroup, [`${page5Values.CurrentYear} (Projected)`]: valueCurrentYearPopulationSize, '2011': valuePopulationSize2011 });
           } else {
             const index = page5Values.PopulationSizeCaste.findIndex(val => val.category === subgroup);
-            chartTotalCaste += valuePopulationSize2024;
+            chartTotalCaste += valueCurrentYearPopulationSize;
             chartTotalCaste += valuePopulationSize2011;
             if (index != -1) {
               page5Values.PopulationSizeCaste[index] = { ...page5Values.PopulationSizeCaste[index], '2011': valuePopulationSize2011 };
