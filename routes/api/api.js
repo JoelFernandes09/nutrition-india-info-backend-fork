@@ -110,7 +110,7 @@ router.get('/url_1d', (req, res, next) => {
       });
     }
 
-    var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${selIndicator}&fq=subgroup_id%3A6&fq=area_id%3A${value}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true`;
+    var strQuery = `fl=title:timeperiod%2Cvalue:timeperiod_id&sort=timeperiod_id%20desc&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&fq=category_id%3A${selCategory}&fq=indicator_id%3A${selIndicator}&fq=subgroup_id%3A6&fq=area_id%3A${value}&q=*%3A*&group=true&group.field=timeperiod_id&group.limit=1&group.main=true&omitHeader=true&rows=16`;
 
     client.search(strQuery, function (err, result) {
       if (err) {
@@ -118,7 +118,19 @@ router.get('/url_1d', (req, res, next) => {
         return;
       }
       // console.log('Response:', result.response);
-      res.send({ result: result.response });
+      if (selIndicator == 56) {
+        const currentYear = new Date().getFullYear();
+        let totalPopulationDropdown = result.response.docs.filter((d) => {
+          if (d.title === "CENSUS 2001" || d.title === "CENSUS 2011" || d.title === "Population Projections 2021" || d.title === `Population Projections ${currentYear}`)
+            return true;
+          else
+            return false;
+
+        });
+
+        res.send({ result: totalPopulationDropdown });
+      }
+      else res.send({ result: result.response });
     });
   } catch (err) {
     next(err);
@@ -416,7 +428,19 @@ router.get('/url_9u', (req, res, next) => {
         res.send({ message: 'unable to process' });
       }
       // console.log('Response:', result.response);
-      res.send({ result: result.response });
+      if (indiVal == 56) {
+        const currentYear = new Date().getFullYear();
+        let totalPopulationDropdown = result.response.docs.filter((d) => {
+          if (d.title === "CENSUS 2001" || d.title === "CENSUS 2011" || d.title === "Population Projections 2021" || d.title === `Population Projections ${currentYear}`)
+            return true;
+          else
+            return false;
+
+        });
+
+        res.send({ result: totalPopulationDropdown });
+      }
+      else res.send({ result: result.response });
     });
   } catch (err) {
     next(err);
