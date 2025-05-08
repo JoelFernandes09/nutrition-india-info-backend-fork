@@ -128,9 +128,10 @@ router.get('/url_1d', (req, res, next) => {
 
         });
 
-        res.send({ result: totalPopulationDropdown });
+        result.response.docs = totalPopulationDropdown;
       }
-      else res.send({ result: result.response });
+
+      res.send({ result: result.response });
     });
   } catch (err) {
     next(err);
@@ -438,7 +439,7 @@ router.get('/url_9u', (req, res, next) => {
 
         });
 
-        res.send({ result: totalPopulationDropdown });
+        result.response.docs = totalPopulationDropdown;
       }
       else res.send({ result: result.response });
     });
