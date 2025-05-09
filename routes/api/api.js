@@ -441,7 +441,7 @@ router.get('/url_9u', (req, res, next) => {
 
         result.response.docs = totalPopulationDropdown;
       }
-      else res.send({ result: result.response });
+      res.send({ result: result.response });
     });
   } catch (err) {
     next(err);
