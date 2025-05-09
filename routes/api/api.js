@@ -529,6 +529,8 @@ const timeperiodIDs = {
   'SRS 2016': 21,
   'SRS 2018': 25,
   'SRS 2020': 27,
+  'SRS 2021': 48,
+  'SRS 2019-21': 49,
   'Population Projections 2021': 34,
   'Population Projections 2024': 35,
   'Population Projections 2025': 36,
@@ -565,8 +567,9 @@ router.get('/factsheet-generator/page1', async (req, res, next) => {
       const result = await client.search(cQuery);
 
       if ([indicatorIDs['MMR'], indicatorIDs['NMR'], indicatorIDs['IMR'], indicatorIDs['U5MR'],].includes(indicator)) {
-        if (indicator === indicatorIDs['MMR']) findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["SRS 2018-20"]);
-        else findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["SRS 2020"]);
+        if (indicator === indicatorIDs['MMR']) console.log(result.response.docs);
+        if (indicator === indicatorIDs['MMR']) findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["SRS 2019-21"]);
+        else findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["SRS 2021"]);
       } else {
         findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
       }
@@ -654,19 +657,22 @@ router.get('/factsheet-generator/page2', async (req, res, next) => {
       '2015-17': timeperiodIDs["SRS 2015-17"],
       '2016-18': timeperiodIDs["SRS 2016-18"],
       '2017-19': timeperiodIDs["SRS 2017-19"],
-      '2018-20': timeperiodIDs["SRS 2018-20"]
+      '2018-20': timeperiodIDs["SRS 2018-20"],
+      '2019-21': timeperiodIDs["SRS 2019-21"]
     },
     IMR: {
       '2014': timeperiodIDs["SRS 2014"],
       '2016': timeperiodIDs["SRS 2016"],
       '2018': timeperiodIDs["SRS 2018"],
-      '2020': timeperiodIDs["SRS 2020"]
+      '2020': timeperiodIDs["SRS 2020"],
+      '2021': timeperiodIDs["SRS 2021"]
     },
     U5MR: {
       '2014': timeperiodIDs["SRS 2014"],
       '2016': timeperiodIDs["SRS 2016"],
       '2018': timeperiodIDs["SRS 2018"],
-      '2020': timeperiodIDs["SRS 2020"]
+      '2020': timeperiodIDs["SRS 2020"],
+      '2021': timeperiodIDs["SRS 2021"]
     }
   };
 
