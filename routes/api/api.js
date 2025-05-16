@@ -84,7 +84,7 @@ router.get('/url_1u', (req, res, next) => {
         console.log(err);
         res.send({ message: 'unable to process' });
       }
-      // console.dir(result.response.docs[0]);
+      // console.log('Response:', result.response);
       res.send({ result: result.response });
     });
   } catch (err) {
@@ -204,11 +204,12 @@ router.get('/url_3u', (req, res, next) => {
   try {
     const indicator = req.query.indicator;
     const timeperiod = req.query.timeperiod;
+    const subgroup = req.query.subgroup;
 
     if (!process.env.indicatorId.includes(indicator)) {
       return res.status(404).send({ message: 'Invalid indicator id' });
     }
-    const cQuery = `fl=area_id%2Carea_code%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num&fq=area_level%3A2&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&fq=timeperiod_id%3A${timeperiod}&rows=100&omitHeader=true&q=*%3A*`;
+    const cQuery = `fl=area_id%2Carea_code%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Csubgroup_id&fq=area_level%3A2&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A${subgroup}&fq=timeperiod_id%3A${timeperiod}&rows=100&omitHeader=true&q=*%3A*`;
 
     client.search(cQuery, function (err, result) {
       // console.log('Query', cQuery);
@@ -296,12 +297,13 @@ router.get('/url_4c_u', (req, res, next) => {
     const area = req.query.area;
     const indicator = req.query.indicator;
     const timeperiod = req.query.timeperiod;
+    const subgroup = req.query.subgroup;
 
     if (!process.env.indicatorId.includes(indicator)) {
       return res.status(404).send({ message: 'Invalid indicator id' });
     }
 
-    const cQuery = `fl=area_id%2Carea_code%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num&fq=area_parent_id%3A${area}&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&fq=timeperiod_id%3A${timeperiod}&rows=1000&omitHeader=true&q=*%3A*`;
+    const cQuery = `fl=area_id%2Carea_code%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num&fq=area_parent_id%3A${area}&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A${subgroup}&fq=timeperiod_id%3A${timeperiod}&rows=1000&omitHeader=true&q=*%3A*`;
 
     client.search(cQuery, function (err, result) {
       // console.log('Query', cQuery);
