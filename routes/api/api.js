@@ -1356,5 +1356,51 @@ router.get('/scatter-plot', async (req, res, next) => {
   }
 });
 
+const doesScatterPlotDataExists = async (indicatorID) => {
+  let exists = false;
+  const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=area_level%3A3&fq=indicator_id%3A${indicatorID}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
+  const result = await client.search(cQuery);
+
+  if (result.response.numFound > 0) exists = true;
+  return exists;
+};
+
+router.get('/scatter-plot-indicators', async (req, res, next) => {
+  try {
+    const selCategory = req.query.selCategory;
+    const selLifecycle = req.query.selLifecycle;
+
+    if (
+      !process.env.categoryId.includes(selCategory) ||
+      !process.env.lifecycleId.includes(selLifecycle)
+    ) {
+      return res
+        .status(404)
+        .send({ message: 'Invalid category id or lifecycle id' });
+    }
+
+    const myQuery = `fl=value:indicator_id%2Ctitle:indicator_short_name%2Cindi_sense%2Cindicator_name%2Cnotes%2Cunit_id%2Cunit_name&fq=category_id%3A${selCategory}&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&q=*%3A*&rows=100&sort=indicator_order%20asc&group=true&group.field=indicator_id&group.limit=1&group.main=true&omitHeader=true`;
+
+    client.search(myQuery, async function (err, result) {
+      if (err) {
+        res.send({ message: 'unable to process' });
+      }
+
+      const indicators = result.response.docs;
+      let sortedIndicators = [];
+      await Promise.all(indicators.map(async (indicator) => {
+        const dataExists = await doesScatterPlotDataExists(indicator.value);
+        if (dataExists) sortedIndicators.push(indicator);
+      }));
+
+      res.send({ result: sortedIndicators });
+    });
+
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 module.exports = router;
 
