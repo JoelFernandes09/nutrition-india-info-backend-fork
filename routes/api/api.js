@@ -1329,4 +1329,32 @@ router.get('/factsheet-generator/page5', async (req, res, next) => {
   }
 });
 
-module.exports = router;;;;
+/******** SCATTER PLOT ************/
+router.get('/scatter-plot', async (req, res, next) => {
+  try {
+    const indicators = JSON.parse(req.query.indicators);
+    const scatterPlotData = {};
+
+    await Promise.all(indicators.map(async (indicator) => {
+      let findValue;
+      const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=area_level%3A3&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
+      const result = await client.search(cQuery);
+
+      findValue = result.response.docs.filter(data => data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
+
+      if (findValue) scatterPlotData[`${indicator}`] = findValue.map((d) => {
+        return { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, area_parent_id: d.area_parent_id };
+      });
+
+    }));
+
+
+    res.send({ result: scatterPlotData });
+
+  } catch (err) {
+    next(err);
+  }
+});
+
+module.exports = router;
+
