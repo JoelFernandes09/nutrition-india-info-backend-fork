@@ -1343,14 +1343,17 @@ router.get('/scatter-plot', async (req, res, next) => {
 
     await Promise.all(indicators.map(async (indicator) => {
       let findValue;
-      const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=area_level%3A3&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
+      const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=(area_level%3A1+OR+area_level%3A3)&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
       const result = await client.search(cQuery);
 
       findValue = result.response.docs.filter(data => data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
 
       if (findValue) scatterPlotData[`${indicator}`] = findValue.map((d) => {
         const state = states.find((s) => s.area_id == d.area_parent_id);
-        return { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, area_parent_id: d.area_parent_id, state: state.area_name };
+        let filterData = state === undefined ?
+          { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, area_parent_id: d.area_parent_id, state: 'All India' } :
+          { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, area_parent_id: d.area_parent_id, state: state.area_name };
+        return filterData;
       });
 
     }));
