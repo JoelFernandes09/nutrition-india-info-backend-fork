@@ -1333,6 +1333,8 @@ router.get('/factsheet-generator/page5', async (req, res, next) => {
 router.get('/scatter-plot', async (req, res, next) => {
   try {
     const indicators = JSON.parse(req.query.indicators);
+    const areaLevel = req.query.area_level;
+
     const scatterPlotData = {};
 
     const statesQuery = `q=*:*&fq=area_level:2&fl=area_id,area_code,area_name,area_level,data_value,data_value_num&rows=1000&omitHeader=true&group=true&group.field=area_id&group.limit=1`;
@@ -1343,7 +1345,7 @@ router.get('/scatter-plot', async (req, res, next) => {
 
     await Promise.all(indicators.map(async (indicator) => {
       let findValue;
-      const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=(area_level%3A1+OR+area_level%3A3)&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
+      const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=(area_level%3A1+OR+area_level%3A${areaLevel})&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
       const result = await client.search(cQuery);
 
       findValue = result.response.docs.filter(data => data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
