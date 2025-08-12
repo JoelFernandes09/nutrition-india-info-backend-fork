@@ -1335,31 +1335,26 @@ router.get('/scatter-plot', async (req, res, next) => {
     const indicators = JSON.parse(req.query.indicators);
     const areaLevel = req.query.area_level;
 
-    const scatterPlotData = {};
+    let scatterPlotData = [];
 
     const statesQuery = `q=*:*&fq=area_level:2&fl=area_id,area_code,area_name,area_level,data_value,data_value_num&rows=1000&omitHeader=true&group=true&group.field=area_id&group.limit=1`;
     const statesQueryResult = await client.search(statesQuery);
 
     const states = statesQueryResult.grouped.area_id.groups.map(g => g.doclist.docs[0]);
 
-
     await Promise.all(indicators.map(async (indicator) => {
-      let findValue;
-      const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=(area_level%3A1+OR+area_level%3A${areaLevel})&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
+      // const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=(area_level%3A1+OR+area_level%3A${areaLevel})&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
+      const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Ctimeperiod%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id%2Cindi_sense%2Cindicator_id&fq=(area_level%3A1+OR+area_level%3A${areaLevel})&fq=indicator_id%3A${indicator.indicatorID}&fq=timeperiod_id%3A${indicator.timeperiod}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
       const result = await client.search(cQuery);
 
-      findValue = result.response.docs.filter(data => data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
-
-      if (findValue) scatterPlotData[`${indicator}`] = findValue.map((d) => {
+      scatterPlotData.push(result.response.docs.map((d) => {
         const state = states.find((s) => s.area_id == d.area_parent_id);
-        let filterData = state === undefined ?
-          { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, area_parent_id: d.area_parent_id, state: 'All India' } :
-          { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, area_parent_id: d.area_parent_id, state: state.area_name };
-        return filterData;
-      });
+        if (!state) return { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, indicator_id: d.indicator_id, type: d.indi_sense, area_parent_id: d.area_parent_id, state: 'India', timeperiod: d.timeperiod };
+        return { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, indicator_id: d.indicator_id, type: d.indi_sense, area_parent_id: d.area_parent_id, state: state.area_name, timeperiod: d.timeperiod };
+
+      }));
 
     }));
-
 
     res.send({ result: scatterPlotData });
 
@@ -1368,9 +1363,9 @@ router.get('/scatter-plot', async (req, res, next) => {
   }
 });
 
-const doesScatterPlotDataExists = async (indicatorID) => {
+const doesScatterPlotDataExists = async (indicatorID, timeperiod) => {
   let exists = false;
-  const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=area_level%3A3&fq=indicator_id%3A${indicatorID}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
+  const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=area_level%3A3&fq=indicator_id%3A${indicatorID}&fq=timeperiod_id%3A${timeperiod}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
   const result = await client.search(cQuery);
 
   if (result.response.numFound > 0) exists = true;
@@ -1379,6 +1374,7 @@ const doesScatterPlotDataExists = async (indicatorID) => {
 
 router.get('/scatter-plot-indicators', async (req, res, next) => {
   try {
+    const selTimeperiod = req.query.selTimeperiod;
     const selCategory = req.query.selCategory;
     const selLifecycle = req.query.selLifecycle;
 
@@ -1391,7 +1387,7 @@ router.get('/scatter-plot-indicators', async (req, res, next) => {
         .send({ message: 'Invalid category id or lifecycle id' });
     }
 
-    const myQuery = `fl=value:indicator_id%2Ctitle:indicator_short_name%2Cindi_sense%2Cindicator_name%2Cnotes%2Cunit_id%2Cunit_name&fq=category_id%3A${selCategory}&fq=lifecycle_id%3A${selLifecycle}%20OR%20lifecycle_id%3A7&q=*%3A*&rows=100&sort=indicator_order%20asc&group=true&group.field=indicator_id&group.limit=1&group.main=true&omitHeader=true`;
+    const myQuery = `fl=value:indicator_id%2Ctitle:indicator_short_name%2Ctimeperiod_id%2Cindi_sense%2Cindicator_name%2Cnotes%2Cunit_id%2Cunit_name&fq=category_id%3A${selCategory}&fq=lifecycle_id%3A${selLifecycle}&fq=timeperiod_id%3A${selTimeperiod}%20OR%20lifecycle_id%3A7&q=*%3A*&rows=100&sort=indicator_order%20asc&group=true&group.field=indicator_id&group.limit=1&group.main=true&omitHeader=true`;
 
     client.search(myQuery, async function (err, result) {
       if (err) {
@@ -1401,7 +1397,7 @@ router.get('/scatter-plot-indicators', async (req, res, next) => {
       const indicators = result.response.docs;
       let sortedIndicators = [];
       await Promise.all(indicators.map(async (indicator) => {
-        const dataExists = await doesScatterPlotDataExists(indicator.value);
+        const dataExists = await doesScatterPlotDataExists(indicator.value, selTimeperiod);
         if (dataExists) sortedIndicators.push(indicator);
       }));
 
