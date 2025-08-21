@@ -1350,7 +1350,7 @@ router.get('/scatter-plot', async (req, res, next) => {
       scatterPlotData.push(result.response.docs.map((d) => {
         const state = states.find((s) => s.area_id == d.area_parent_id);
         if (!state) return { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, indicator_id: d.indicator_id, type: d.indi_sense, area_parent_id: d.area_parent_id, state: 'India', timeperiod: d.timeperiod };
-        return { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, indicator_id: d.indicator_id, type: d.indi_sense, area_parent_id: d.area_parent_id, state: state.area_name, timeperiod: d.timeperiod };
+        return { area_id: d.area_id, name: d.area_name, area_level: d.area_level, value: d.data_value, indicator_name: d.indicator_short_name, indicator_id: d.indicator_id, type: d.indi_sense, area_parent_id: d.area_parent_id, state: state.area_name, timeperiod: d.timeperiod };
 
       }));
 
