@@ -532,6 +532,7 @@ const timeperiodIDs = {
   'SRS 2020': 27,
   'SRS 2021': 48,
   'SRS 2022': 49,
+  'SRS 2023': 50,
   'Population Projections 2021': 34,
   'Population Projections 2024': 35,
   'Population Projections 2025': 36,
@@ -570,7 +571,7 @@ router.get('/factsheet-generator/page1', async (req, res, next) => {
       if ([indicatorIDs['MMR'], indicatorIDs['NMR'], indicatorIDs['IMR'], indicatorIDs['U5MR'],].includes(indicator)) {
         // if (indicator === indicatorIDs['MMR']) console.log(result.response.docs);
         if (indicator === indicatorIDs['MMR']) findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["SRS 2022"]);
-        else findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["SRS 2022"]);
+        else findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["SRS 2023"]);
       } else {
         findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
       }
