@@ -1,6 +1,8 @@
 const express = require('express');
 const SolrNode = require('solr-node');
 const CryptoJS = require('crypto-js');
+const fs = require('fs');
+const requestIp = require('request-ip');
 
 const router = express.Router();
 const keys = require('../../config/keys');
@@ -1410,6 +1412,30 @@ router.get('/scatter-plot-indicators', async (req, res, next) => {
   }
 });
 
+// Landing Page Vistor Count
+const VISITORS_FILE = "./visitors.json";
+
+if (!fs.existsSync(VISITORS_FILE)) {
+  fs.writeFileSync(VISITORS_FILE, JSON.stringify([]));
+}
+
+router.get('/update-visitor-count', async (req, res, next) => {
+  try {
+    const buffer = 56361;
+    const ip = requestIp.getClientIp(req);
+    let visitors = JSON.parse(fs.readFileSync(VISITORS_FILE, "utf-8"));
+
+    if (!visitors.includes(ip)) {
+      visitors.push(ip);
+      fs.writeFileSync(VISITORS_FILE, JSON.stringify(visitors, null, 2));
+    }
+
+    res.json({ visitors: buffer + visitors.length });
+
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = router;
 
