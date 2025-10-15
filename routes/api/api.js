@@ -1368,7 +1368,7 @@ router.get('/scatter-plot', async (req, res, next) => {
 
 const doesScatterPlotDataExists = async (indicatorID, timeperiod) => {
   let exists = false;
-  const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=area_level%3A3&fq=indicator_id%3A${indicatorID}&fq=timeperiod_id%3A${timeperiod}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
+  const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=indicator_id%3A${indicatorID}&fq=timeperiod_id%3A${timeperiod}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
   const result = await client.search(cQuery);
 
   if (result.response.numFound > 0) exists = true;
