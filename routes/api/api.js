@@ -1346,16 +1346,18 @@ router.get('/scatter-plot', async (req, res, next) => {
     const states = statesQueryResult.grouped.area_id.groups.map(g => g.doclist.docs[0]);
 
     await Promise.all(indicators.map(async (indicator) => {
-      // const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id&fq=(area_level%3A1+OR+area_level%3A${areaLevel})&fq=indicator_id%3A${indicator}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
       const cQuery = `fl=area_id%2Carea_code%2Ctimeperiod_id%2Ctimeperiod%2Carea_name%2Carea_level%2Cdata_value%2Cdata_value_num%2Cindicator_short_name%2Carea_parent_id%2Cindi_sense%2Cindicator_id&fq=(area_level%3A1+OR+area_level%3A${areaLevel})&fq=indicator_id%3A${indicator.indicatorID}&fq=timeperiod_id%3A${indicator.timeperiod}&fq=subgroup_id%3A6&rows=10000&omitHeader=true&q=*%3A*`;
       const result = await client.search(cQuery);
 
       scatterPlotData.push(result.response.docs.map((d) => {
         const state = states.find((s) => s.area_id == d.area_parent_id);
-        if (!state) return { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, indicator_id: d.indicator_id, type: d.indi_sense, area_parent_id: d.area_parent_id, state: 'India', timeperiod: d.timeperiod };
+        if (!state) {
+          return { area_id: d.area_id, name: d.area_name, value: d.data_value, indicator_name: d.indicator_short_name, indicator_id: d.indicator_id, type: d.indi_sense, area_parent_id: d.area_parent_id, state: 'India', timeperiod: d.timeperiod };
+        }
+        
         return { area_id: d.area_id, name: d.area_name, area_level: d.area_level, value: d.data_value, indicator_name: d.indicator_short_name, indicator_id: d.indicator_id, type: d.indi_sense, area_parent_id: d.area_parent_id, state: state.area_name, timeperiod: d.timeperiod };
 
-      }));
+      }).filter((d) => d.value != null));
 
     }));
 
