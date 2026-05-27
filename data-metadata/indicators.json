@@ -1,0 +1,1277 @@
+[
+  {
+    "id": 1,
+    "name": "Anaemia in 15-19 year old adolescent girls",
+    "aliases": []
+  },
+  {
+    "id": 2,
+    "name": "Low BMI in 15-19 year old adolescent girls",
+    "aliases": []
+  },
+  {
+    "id": 4,
+    "name": "Women between 15-19 years old who have begun childbearing",
+    "aliases": []
+  },
+  {
+    "id": 5,
+    "name": "Fed minimum acceptable diet in  6 - 23 month olds",
+    "aliases": []
+  },
+  {
+    "id": 6,
+    "name": "Minimal dietary diversity in 6-23 month olds",
+    "aliases": []
+  },
+  {
+    "id": 7,
+    "name": "Minimal meal frequency in 6-23 month olds",
+    "aliases": []
+  },
+  {
+    "id": 8,
+    "name": "Indicator 8",
+    "aliases": []
+  },
+  {
+    "id": 9,
+    "name": "Indicator 9",
+    "aliases": []
+  },
+  {
+    "id": 10,
+    "name": "Indicator 10",
+    "aliases": []
+  },
+  {
+    "id": 11,
+    "name": "Exclusive breastfeeding in 0-5 month olds",
+    "aliases": []
+  },
+  {
+    "id": 12,
+    "name": "Stunting in under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 13,
+    "name": "Indicator 13",
+    "aliases": []
+  },
+  {
+    "id": 14,
+    "name": "Acute Respiratory Infection (ARI)/Pneumonia in past two weeks in under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 15,
+    "name": "Diarrhoea in children under five years of age",
+    "aliases": []
+  },
+  {
+    "id": 16,
+    "name": "Indicator 16",
+    "aliases": []
+  },
+  {
+    "id": 17,
+    "name": "Underweight in under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 18,
+    "name": "Severe underweight in under five-year olds",
+    "aliases": []
+  },
+  {
+    "id": 19,
+    "name": "Wasting in under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 20,
+    "name": "Severe Wasting in under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 21,
+    "name": "Overweight in under-five year old",
+    "aliases": []
+  },
+  {
+    "id": 22,
+    "name": "Indicator 22",
+    "aliases": []
+  },
+  {
+    "id": 23,
+    "name": "Full immunization in 12-23 month olds",
+    "aliases": []
+  },
+  {
+    "id": 24,
+    "name": "Received food supplements in children in 6 - 23 months of age",
+    "aliases": []
+  },
+  {
+    "id": 25,
+    "name": "Received Vitamin A supplementation in 6-59 month olds",
+    "aliases": []
+  },
+  {
+    "id": 26,
+    "name": "Anaemia in 6-59 month olds",
+    "aliases": []
+  },
+  {
+    "id": 28,
+    "name": "Introduction of complementary foods in children 6-8 months of age",
+    "aliases": []
+  },
+  {
+    "id": 29,
+    "name": "Low birth weight in under-five year old chidren",
+    "aliases": []
+  },
+  {
+    "id": 30,
+    "name": "Indicator 30",
+    "aliases": []
+  },
+  {
+    "id": 31,
+    "name": "Early initiation of breastfeeding within one hour of birth  in children <24 months of age",
+    "aliases": []
+  },
+  {
+    "id": 32,
+    "name": "Treatment for ARI/pneumonia for under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 33,
+    "name": "Indicator 33",
+    "aliases": []
+  },
+  {
+    "id": 34,
+    "name": "Safe disposal of child faeces",
+    "aliases": []
+  },
+  {
+    "id": 35,
+    "name": "Indicator 35",
+    "aliases": []
+  },
+  {
+    "id": 36,
+    "name": "Indicator 36",
+    "aliases": []
+  },
+  {
+    "id": 37,
+    "name": "Households with access to electricity",
+    "aliases": []
+  },
+  {
+    "id": 39,
+    "name": "Indicator 39",
+    "aliases": []
+  },
+  {
+    "id": 40,
+    "name": "Indicator 40",
+    "aliases": []
+  },
+  {
+    "id": 42,
+    "name": "Access to improved latrine / toilet",
+    "aliases": []
+  },
+  {
+    "id": 43,
+    "name": "Open defecation",
+    "aliases": []
+  },
+  {
+    "id": 44,
+    "name": "Indicator 44",
+    "aliases": []
+  },
+  {
+    "id": 45,
+    "name": "Indicator 45",
+    "aliases": []
+  },
+  {
+    "id": 46,
+    "name": "Indicator 46",
+    "aliases": []
+  },
+  {
+    "id": 47,
+    "name": "Indicator 47",
+    "aliases": []
+  },
+  {
+    "id": 48,
+    "name": "Indicator 48",
+    "aliases": []
+  },
+  {
+    "id": 51,
+    "name": "Access to improved source of drinking water",
+    "aliases": []
+  },
+  {
+    "id": 53,
+    "name": "Infant Mortality Rate",
+    "aliases": []
+  },
+  {
+    "id": 54,
+    "name": "Indicator 54",
+    "aliases": []
+  },
+  {
+    "id": 55,
+    "name": "Indicator 55",
+    "aliases": []
+  },
+  {
+    "id": 56,
+    "name": "Total population",
+    "aliases": []
+  },
+  {
+    "id": 57,
+    "name": "Pregnant women who received food supplements",
+    "aliases": []
+  },
+  {
+    "id": 58,
+    "name": "Indicator 58",
+    "aliases": []
+  },
+  {
+    "id": 59,
+    "name": "Indicator 59",
+    "aliases": []
+  },
+  {
+    "id": 60,
+    "name": "Indicator 60",
+    "aliases": []
+  },
+  {
+    "id": 61,
+    "name": "Indicator 61",
+    "aliases": []
+  },
+  {
+    "id": 62,
+    "name": "Under-five Mortality Rate",
+    "aliases": []
+  },
+  {
+    "id": 63,
+    "name": "Indicator 63",
+    "aliases": []
+  },
+  {
+    "id": 64,
+    "name": "Indicator 64",
+    "aliases": []
+  },
+  {
+    "id": 65,
+    "name": "Indicator 65",
+    "aliases": []
+  },
+  {
+    "id": 66,
+    "name": "Households with availability of iodized salt",
+    "aliases": []
+  },
+  {
+    "id": 67,
+    "name": "Indicator 67",
+    "aliases": []
+  },
+  {
+    "id": 68,
+    "name": "Indicator 68",
+    "aliases": []
+  },
+  {
+    "id": 69,
+    "name": "Indicator 69",
+    "aliases": []
+  },
+  {
+    "id": 70,
+    "name": "Pregnant women who consumed IFA for 180 days or more",
+    "aliases": []
+  },
+  {
+    "id": 71,
+    "name": "Anaemia in 15-49 year old women",
+    "aliases": []
+  },
+  {
+    "id": 74,
+    "name": "Women 20-24 years of age who married before age 18 years",
+    "aliases": []
+  },
+  {
+    "id": 75,
+    "name": "Women 15-49 year old who delivered in a health facility",
+    "aliases": []
+  },
+  {
+    "id": 76,
+    "name": "Pregnant women who were attended by any provider during the first trimester",
+    "aliases": []
+  },
+  {
+    "id": 77,
+    "name": "Pregnant women  who were attended by any provider 4 or more times",
+    "aliases": []
+  },
+  {
+    "id": 78,
+    "name": "Deliveries attended by a skilled birth attendant",
+    "aliases": []
+  },
+  {
+    "id": 79,
+    "name": "Pregnant women visited at least once by ANM",
+    "aliases": []
+  },
+  {
+    "id": 80,
+    "name": "Pregnant women visited at least once by ASHA",
+    "aliases": []
+  },
+  {
+    "id": 82,
+    "name": "Indicator 82",
+    "aliases": []
+  },
+  {
+    "id": 83,
+    "name": "Indicator 83",
+    "aliases": []
+  },
+  {
+    "id": 84,
+    "name": "Women 15-49 years of age with at least 10 years of education",
+    "aliases": []
+  },
+  {
+    "id": 85,
+    "name": "Domestic Violence (experienced physical violence since age 15)",
+    "aliases": []
+  },
+  {
+    "id": 86,
+    "name": "Women 15-49 years of age who have and use bank account",
+    "aliases": []
+  },
+  {
+    "id": 87,
+    "name": "Indicator 87",
+    "aliases": []
+  },
+  {
+    "id": 88,
+    "name": "Indicator 88",
+    "aliases": []
+  },
+  {
+    "id": 89,
+    "name": "Women 15-49 years who are obese",
+    "aliases": []
+  },
+  {
+    "id": 91,
+    "name": "Indicator 91",
+    "aliases": []
+  },
+  {
+    "id": 95,
+    "name": "Indicator 95",
+    "aliases": []
+  },
+  {
+    "id": 96,
+    "name": "Overweight in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 99,
+    "name": "ORS treatment for diarrhea for under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 100,
+    "name": "Zinc treatment for diarrhea for under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 104,
+    "name": "Indicator 104",
+    "aliases": []
+  },
+  {
+    "id": 105,
+    "name": "Overweight in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 107,
+    "name": "MUAC <115 mm in  6-59 month olds",
+    "aliases": []
+  },
+  {
+    "id": 108,
+    "name": "MUAC <125 mm in  6-59 month olds",
+    "aliases": []
+  },
+  {
+    "id": 129,
+    "name": "Glycosylated Hemoglobin (HbA1c) in adolescents 10-19 years old",
+    "aliases": []
+  },
+  {
+    "id": 131,
+    "name": "High Blood Sugar in 10-19 years old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 133,
+    "name": "Indicator 133",
+    "aliases": []
+  },
+  {
+    "id": 135,
+    "name": "High Total Cholesterol in adolescents 10-19 years old",
+    "aliases": []
+  },
+  {
+    "id": 137,
+    "name": "High Triglycerides in adolescents 10-19 years old",
+    "aliases": []
+  },
+  {
+    "id": 139,
+    "name": "Indicator 139",
+    "aliases": []
+  },
+  {
+    "id": 142,
+    "name": "Indicator 142",
+    "aliases": []
+  },
+  {
+    "id": 145,
+    "name": "Vitamin A deficiency  in 1-4 year olds",
+    "aliases": []
+  },
+  {
+    "id": 148,
+    "name": "B12 deficiency  in children 1-4 years old",
+    "aliases": []
+  },
+  {
+    "id": 151,
+    "name": "Vitamin D  deficiency in 1-4 year olds",
+    "aliases": []
+  },
+  {
+    "id": 154,
+    "name": "Zinc deficiency in 1-4 year olds",
+    "aliases": []
+  },
+  {
+    "id": 156,
+    "name": "Indicator 156",
+    "aliases": []
+  },
+  {
+    "id": 157,
+    "name": "Indicator 157",
+    "aliases": []
+  },
+  {
+    "id": 158,
+    "name": "Indicator 158",
+    "aliases": []
+  },
+  {
+    "id": 159,
+    "name": "Indicator 159",
+    "aliases": []
+  },
+  {
+    "id": 160,
+    "name": "Indicator 160",
+    "aliases": []
+  },
+  {
+    "id": 161,
+    "name": "Indicator 161",
+    "aliases": []
+  },
+  {
+    "id": 162,
+    "name": "Indicator 162",
+    "aliases": []
+  },
+  {
+    "id": 163,
+    "name": "Indicator 163",
+    "aliases": []
+  },
+  {
+    "id": 164,
+    "name": "Indicator 164",
+    "aliases": []
+  },
+  {
+    "id": 165,
+    "name": "Indicator 165",
+    "aliases": []
+  },
+  {
+    "id": 166,
+    "name": "Indicator 166",
+    "aliases": []
+  },
+  {
+    "id": 167,
+    "name": "Indicator 167",
+    "aliases": []
+  },
+  {
+    "id": 203,
+    "name": "Iron deficiency in 15-19 year old adolescent girls",
+    "aliases": []
+  },
+  {
+    "id": 204,
+    "name": "Vitamin A deficiency in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 205,
+    "name": "Vitamin D deficiency in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 206,
+    "name": "Vitamin B12 deficiency in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 207,
+    "name": "Folate deficiency in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 208,
+    "name": "Zinc deficiency in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 209,
+    "name": "High Blood Sugar in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 210,
+    "name": "Glycosylated Hemoglobin (HbA1c) in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 211,
+    "name": "High Total Cholesterol in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 212,
+    "name": "High Triglycerides in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 218,
+    "name": "Anaemia in 10-14 year old adolescent girls",
+    "aliases": []
+  },
+  {
+    "id": 219,
+    "name": "Iron deficiency in 10-14 year old adolescent girls",
+    "aliases": []
+  },
+  {
+    "id": 220,
+    "name": "Vitamin A deficiency in 10-14 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 221,
+    "name": "Vitamin D deficiency in 10-14 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 222,
+    "name": "Vitamin B12 deficiency in 10-14 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 223,
+    "name": "Folate deficiency in 10-14 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 224,
+    "name": "Zinc deficiency in 10-14 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 225,
+    "name": "High Blood Sugar in fasting 10-14 years old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 226,
+    "name": "Glycosylated Hemoglobin (HbA1c) in adolescents 10-14 years old",
+    "aliases": []
+  },
+  {
+    "id": 227,
+    "name": "High Total Cholesterol in 10-14 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 228,
+    "name": "High Triglycerides in 10-14 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 231,
+    "name": "Iron deficiency  in 1-4 year olds",
+    "aliases": []
+  },
+  {
+    "id": 239,
+    "name": "Anaemia in pregnant women",
+    "aliases": []
+  },
+  {
+    "id": 244,
+    "name": "Stunting in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 245,
+    "name": "Underweight in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 248,
+    "name": "Anaemia in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 249,
+    "name": "Iron deficiency in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 250,
+    "name": "Vitamin A deficiency in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 251,
+    "name": "Vitamin D  deficiency in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 252,
+    "name": "Folate deficiency in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 253,
+    "name": "B12 deficiency in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 254,
+    "name": "Zinc deficiency in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 255,
+    "name": "High Total Cholesterol in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 256,
+    "name": "High Triglycerides in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 257,
+    "name": "High Blood Sugar in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 258,
+    "name": "Glycosylated Hb (HbA1c) in 5-9 year olds",
+    "aliases": []
+  },
+  {
+    "id": 261,
+    "name": "Overweight in 15- 49 year old women",
+    "aliases": []
+  },
+  {
+    "id": 267,
+    "name": "High Blood Sugar in 15-49 year old women",
+    "aliases": []
+  },
+  {
+    "id": 271,
+    "name": "High Blood Pressure in 15-49 year old women",
+    "aliases": []
+  },
+  {
+    "id": 277,
+    "name": "Children under-five years old whose birth was registered",
+    "aliases": []
+  },
+  {
+    "id": 286,
+    "name": "Postnatal care for newborns who received first check by a health professional within 2 days of birth",
+    "aliases": []
+  },
+  {
+    "id": 293,
+    "name": "Pregnant women who received the Mother and Child Protection card (MCP) after pregnancy registration",
+    "aliases": []
+  },
+  {
+    "id": 298,
+    "name": "Pregnant women who received at least 2 TT injections",
+    "aliases": []
+  },
+  {
+    "id": 309,
+    "name": "Women 15-49 years currently using modern method to delay or avoid getting pregnant",
+    "aliases": []
+  },
+  {
+    "id": 317,
+    "name": "Households with any member covered by health insurance",
+    "aliases": []
+  },
+  {
+    "id": 320,
+    "name": "Women 15-49 years of age who are literate",
+    "aliases": []
+  },
+  {
+    "id": 321,
+    "name": "Median Duration of  Exclusive Breastfeeding (EBF) in 0-5 month olds",
+    "aliases": []
+  },
+  {
+    "id": 326,
+    "name": "Women 15-49 years of age who have and use phone",
+    "aliases": []
+  },
+  {
+    "id": 329,
+    "name": "Women 15-49 years with an unmet need for family planning",
+    "aliases": []
+  },
+  {
+    "id": 330,
+    "name": "Pregnant women who consumed IFA for 100 days or more",
+    "aliases": []
+  },
+  {
+    "id": 331,
+    "name": "Pregnant women who took an intestinal parasite drug",
+    "aliases": []
+  },
+  {
+    "id": 333,
+    "name": "Women 15-49 year old who delivered in a Public health facility",
+    "aliases": []
+  },
+  {
+    "id": 334,
+    "name": "Women 15-49 year old who delivered in a Private health facility",
+    "aliases": []
+  },
+  {
+    "id": 335,
+    "name": "Home deliveries in which clean blade used to cut the cord",
+    "aliases": []
+  },
+  {
+    "id": 336,
+    "name": "Female Household Headship",
+    "aliases": []
+  },
+  {
+    "id": 338,
+    "name": "Housholds using solid fuel for cooking",
+    "aliases": []
+  },
+  {
+    "id": 339,
+    "name": "Women covered by a health scheme or health insurance",
+    "aliases": []
+  },
+  {
+    "id": 340,
+    "name": "Women who use mobile for financial transactions",
+    "aliases": []
+  },
+  {
+    "id": 341,
+    "name": "Households with BPL Card (proxy of poverty)",
+    "aliases": []
+  },
+  {
+    "id": 342,
+    "name": "Pregnant women who received health and nutrition education",
+    "aliases": []
+  },
+  {
+    "id": 343,
+    "name": "Pregnant women who received advice on breastfeeding from any provider",
+    "aliases": []
+  },
+  {
+    "id": 344,
+    "name": "Pregnant women who received advice on cord care",
+    "aliases": []
+  },
+  {
+    "id": 345,
+    "name": "Men who received counselling on importance of delivering in a health facility",
+    "aliases": []
+  },
+  {
+    "id": 346,
+    "name": "Men who received counselling on importance of proper nutrition for the\nmother during pregnancy",
+    "aliases": []
+  },
+  {
+    "id": 347,
+    "name": "Men who received counselling on importance of Family planning\ndelaying his next child",
+    "aliases": []
+  },
+  {
+    "id": 348,
+    "name": "Men who received counselling on importance of Breastfeeding the baby\nimmediately after birth",
+    "aliases": []
+  },
+  {
+    "id": 349,
+    "name": "Pregnant women who were given or purchased IFA",
+    "aliases": []
+  },
+  {
+    "id": 351,
+    "name": "Pregnant women who received two or more TT injections during the pregnancy",
+    "aliases": []
+  },
+  {
+    "id": 352,
+    "name": "Women 15-49 years with an unmet need for spacing method",
+    "aliases": []
+  },
+  {
+    "id": 353,
+    "name": "Adolescents 15-19 years with an unmet need for family planning",
+    "aliases": []
+  },
+  {
+    "id": 354,
+    "name": "Adolescents 15-19 years with an unmet need for spacing method",
+    "aliases": []
+  },
+  {
+    "id": 355,
+    "name": "Pregnant women who received ANC from a skilled provider",
+    "aliases": []
+  },
+  {
+    "id": 356,
+    "name": "Women who received counseling on HIV during ANC visit",
+    "aliases": []
+  },
+  {
+    "id": 357,
+    "name": "Women who received HIV test during ANC visit and received results and post-test counseling",
+    "aliases": []
+  },
+  {
+    "id": 358,
+    "name": "Women who received HIV counseling, HIV test, and test results during ANC visit",
+    "aliases": []
+  },
+  {
+    "id": 359,
+    "name": "The average out-of-pocket cost paid for delivery for the most recent live birth among women age 15-49 in a public health facility",
+    "aliases": []
+  },
+  {
+    "id": 360,
+    "name": "Women 15-49 year old who received financial assistance (under Janani Suraksha Yojana) for delivering at a health facility",
+    "aliases": []
+  },
+  {
+    "id": 361,
+    "name": "Using clean fuel for cooking",
+    "aliases": []
+  },
+  {
+    "id": 362,
+    "name": "Percentage of pregnancies that were registered",
+    "aliases": []
+  },
+  {
+    "id": 363,
+    "name": "Pregnant women who had antenatal care (ANC) visit- ever or at least once",
+    "aliases": []
+  },
+  {
+    "id": 364,
+    "name": "Pregnant women who were weighed during antenatal care (ANC)",
+    "aliases": []
+  },
+  {
+    "id": 366,
+    "name": "Neonatal Mortality Rate",
+    "aliases": []
+  },
+  {
+    "id": 367,
+    "name": "Women 15-49 years of age with hypertension",
+    "aliases": []
+  },
+  {
+    "id": 368,
+    "name": "Women age 15-49 who reported that they have diabetes",
+    "aliases": []
+  },
+  {
+    "id": 369,
+    "name": "Women age 15-49 with diabetes who have sought treatment",
+    "aliases": []
+  },
+  {
+    "id": 370,
+    "name": "Women age 15-49 who reported that they have Asthma",
+    "aliases": []
+  },
+  {
+    "id": 371,
+    "name": "Women age 15-49 with Asthma who have sought treatment",
+    "aliases": []
+  },
+  {
+    "id": 372,
+    "name": "Women age 15-49 who reported that they have Goitre or any other thyroid disorder",
+    "aliases": []
+  },
+  {
+    "id": 373,
+    "name": "Women age 15-49 with Goitre or any other thyroid disorder who have sought treatment",
+    "aliases": []
+  },
+  {
+    "id": 374,
+    "name": "Low height in 15-49 year old women (Percentage below 145cm)",
+    "aliases": []
+  },
+  {
+    "id": 375,
+    "name": "Timing of decision to have Cesarean (Percentage decisions before onset of labour pains)",
+    "aliases": []
+  },
+  {
+    "id": 376,
+    "name": "Timing of decision to have Cesarean (Percentage decisions After onset of labour pains)",
+    "aliases": []
+  },
+  {
+    "id": 377,
+    "name": "Women who had any contact with a health worker in the past three months",
+    "aliases": []
+  },
+  {
+    "id": 379,
+    "name": "Women 15-49 years of age with hypertension who sought treatment",
+    "aliases": []
+  },
+  {
+    "id": 380,
+    "name": "Pregnant women who slept under insecticide-treated bed net",
+    "aliases": []
+  },
+  {
+    "id": 381,
+    "name": "IFA supplementation in 15-19 year old adolescent girls",
+    "aliases": []
+  },
+  {
+    "id": 382,
+    "name": "Percentage Households having a bank account/post office account",
+    "aliases": []
+  },
+  {
+    "id": 383,
+    "name": "Large Waist Circumference in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 384,
+    "name": "Births delivered by caesarean section",
+    "aliases": []
+  },
+  {
+    "id": 386,
+    "name": "Overweight in pregnant Women (BMI Range: 25 to 30)",
+    "aliases": []
+  },
+  {
+    "id": 388,
+    "name": "Percentage women who were able to get Supplementary Nutrition during pregnancy",
+    "aliases": []
+  },
+  {
+    "id": 389,
+    "name": "Postnatal check for mother within 2 days of birth",
+    "aliases": []
+  },
+  {
+    "id": 390,
+    "name": "Women age 15-49 giving birth who had massive vaginal bleeding or very high fever within two months after the most recent delivery",
+    "aliases": []
+  },
+  {
+    "id": 391,
+    "name": "Pregnant women who received information on where to go if experienced specific signs of pregnancy complications",
+    "aliases": []
+  },
+  {
+    "id": 392,
+    "name": "Pregnant women who received information on specific signs of pregnancy complications",
+    "aliases": []
+  },
+  {
+    "id": 394,
+    "name": "Male was present for any antenatal care during pregnancy",
+    "aliases": []
+  },
+  {
+    "id": 396,
+    "name": "High Blood Sugar in pregnant women",
+    "aliases": []
+  },
+  {
+    "id": 397,
+    "name": "Continued breastfeeding in children until 2 years of age",
+    "aliases": []
+  },
+  {
+    "id": 398,
+    "name": "Mothers who received counselling after child under 5 year was weighed",
+    "aliases": []
+  },
+  {
+    "id": 399,
+    "name": "Women who reported that specific problems are big problems for them in accessing medical advice or treatment for themselves when they are sick",
+    "aliases": []
+  },
+  {
+    "id": 400,
+    "name": "Male ever told what to do if child's mother had any pregnancy complication",
+    "aliases": []
+  },
+  {
+    "id": 401,
+    "name": "Adolescents 15-19 years currently using modern method to delay or avoid getting pregnant",
+    "aliases": []
+  },
+  {
+    "id": 402,
+    "name": "Large Waist Circumference in 15-49 year old women",
+    "aliases": []
+  },
+  {
+    "id": 403,
+    "name": "Large Hip Circumference in 15-49 year old women",
+    "aliases": []
+  },
+  {
+    "id": 404,
+    "name": "Low Arm Circumference in 15-49 year old women",
+    "aliases": []
+  },
+  {
+    "id": 405,
+    "name": "High Blood Pressure in 15-19 year old adolescents",
+    "aliases": []
+  },
+  {
+    "id": 406,
+    "name": "High Blood Pressure in pregnant women",
+    "aliases": []
+  },
+  {
+    "id": 407,
+    "name": "Obesity in pregnant women",
+    "aliases": []
+  },
+  {
+    "id": 408,
+    "name": "Mothers Received 1st postnatal health check from Doctor or ANM/nurse/midwife/LHV",
+    "aliases": []
+  },
+  {
+    "id": 409,
+    "name": "Counselled on breastfeeding at delivery for 15-49 year old women",
+    "aliases": []
+  },
+  {
+    "id": 410,
+    "name": "Women's Empowerment",
+    "aliases": []
+  },
+  {
+    "id": 411,
+    "name": "Received albendazole or any other deworming drug in 12-59 month olds",
+    "aliases": []
+  },
+  {
+    "id": 412,
+    "name": "Growth monitoring in under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 413,
+    "name": "Received IFA supplementation in children 6-59 months old",
+    "aliases": []
+  },
+  {
+    "id": 415,
+    "name": "Large Waist Circumference in pregnant women",
+    "aliases": []
+  },
+  {
+    "id": 416,
+    "name": "Rashtriya Swasthya Bima Yojana (RSBY) (anyone in the household)",
+    "aliases": []
+  },
+  {
+    "id": 417,
+    "name": "Availability of water/soap for hand washing",
+    "aliases": []
+  },
+  {
+    "id": 418,
+    "name": "Women 15-49 years with an unmet need for family planning",
+    "aliases": []
+  },
+  {
+    "id": 419,
+    "name": "Percentage delivered by caesarean section – Public facility",
+    "aliases": []
+  },
+  {
+    "id": 420,
+    "name": "Percentage delivered by caesarean section – Private facility",
+    "aliases": []
+  },
+  {
+    "id": 501,
+    "name": "Adolescents (10-19 years)",
+    "aliases": []
+  },
+  {
+    "id": 502,
+    "name": "Adolescents (10-14 years)",
+    "aliases": []
+  },
+  {
+    "id": 503,
+    "name": "Adolescents (15-19 years)",
+    "aliases": []
+  },
+  {
+    "id": 504,
+    "name": "Women of reproductive age (15-49 years)",
+    "aliases": []
+  },
+  {
+    "id": 505,
+    "name": "Pregnant Women",
+    "aliases": []
+  },
+  {
+    "id": 506,
+    "name": "Delivery/PNC Women",
+    "aliases": []
+  },
+  {
+    "id": 507,
+    "name": "Children (<5 years)",
+    "aliases": []
+  },
+  {
+    "id": 508,
+    "name": "Children (5-9 years)",
+    "aliases": []
+  },
+  {
+    "id": 509,
+    "name": "Maternal Mortality Ratio",
+    "aliases": []
+  },
+  {
+    "id": 510,
+    "name": "Children with fever in the past two weeks in under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 511,
+    "name": "Treatment for Fever for under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 512,
+    "name": "Treatment for Diarrhoea for under-five year olds",
+    "aliases": []
+  },
+  {
+    "id": 513,
+    "name": "Lactating Mother who received food supplements",
+    "aliases": []
+  },
+  {
+    "id": 514,
+    "name": "Postnatal Check for a Mother",
+    "aliases": []
+  }
+]

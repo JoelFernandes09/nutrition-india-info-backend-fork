@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "extract:metadata": "node scripts/extractAreas.js && node scripts/extractIndicators.js && node scripts/extractSubgroups.js"
   },
   "author": "Sweta Shaw",
   "license": "ISC",
@@ -17,6 +18,7 @@
     "express-rate-limit": "^7.5.0",
     "fs": "^0.0.1-security",
     "helmet": "^8.0.0",
+    "openai": "^6.34.0",
     "request-ip": "^3.3.0",
     "solr-node": "^1.2.1"
   },

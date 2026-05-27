@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1,
+    "name": "OBC"
+  },
+  {
+    "id": 2,
+    "name": "Other Caste"
+  },
+  {
+    "id": 3,
+    "name": "Rural"
+  },
+  {
+    "id": 4,
+    "name": "SC"
+  },
+  {
+    "id": 5,
+    "name": "ST"
+  },
+  {
+    "id": 6,
+    "name": "All"
+  },
+  {
+    "id": 7,
+    "name": "Urban"
+  },
+  {
+    "id": 8,
+    "name": "Fourth"
+  },
+  {
+    "id": 9,
+    "name": "Middle"
+  },
+  {
+    "id": 10,
+    "name": "Poorest"
+  },
+  {
+    "id": 11,
+    "name": "Richest"
+  },
+  {
+    "id": 12,
+    "name": "Second"
+  },
+  {
+    "id": 14,
+    "name": "Female"
+  },
+  {
+    "id": 15,
+    "name": "Male"
+  },
+  {
+    "id": 16,
+    "name": "Inhabitaed"
+  },
+  {
+    "id": 17,
+    "name": "Unhabitaed"
+  },
+  {
+    "id": 18,
+    "name": "No Education"
+  },
+  {
+    "id": 19,
+    "name": "< 5 years completed"
+  },
+  {
+    "id": 20,
+    "name": "5-9 years completed"
+  },
+  {
+    "id": 21,
+    "name": "10-11 years completed"
+  },
+  {
+    "id": 22,
+    "name": "12+ years completed"
+  }
+]
