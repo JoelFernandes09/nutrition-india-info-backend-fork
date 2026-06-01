@@ -512,6 +512,7 @@ const indicatorIDs = {
 };
 
 const timeperiodIDs = {
+  'NFHS6 2023-2024': 52,
   'NFHS5 2019-2020': 24,
   'NFHS4 2015-2016': 20,
   'NFHS3 2005-2006': 6,
@@ -576,7 +577,8 @@ router.get('/factsheet-generator/page1', async (req, res, next) => {
         if (indicator === indicatorIDs['MMR']) findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["SRS 2024"]);
         else findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["SRS 2024"]);
       } else {
-        findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
+        findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["NFHS6 2023-2024"]);
+        if(!findValue) findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
       }
 
       if (findValue) value = findValue.data_value;
@@ -642,9 +644,9 @@ router.get('/factsheet-generator/page2', async (req, res, next) => {
 
   const timeperiodsRequired = {
     LowBirthWeight: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"]
     },
     Anemia: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
@@ -652,10 +654,11 @@ router.get('/factsheet-generator/page2', async (req, res, next) => {
       '2019-20': timeperiodIDs["NFHS5 2019-2020"]
     },
     Stunting: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
+      // '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
       '2016-18': timeperiodIDs["CNNS 2016-2018"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"]
     },
     MMR: {
       '2018': timeperiodIDs["SRS 2018"],
