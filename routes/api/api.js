@@ -657,16 +657,11 @@ router.get('/factsheet-generator/page2', async (req, res, next) => {
       '2019-20': timeperiodIDs["NFHS5 2019-2020"]
     },
     Stunting: {
-      // '2005-06': timeperiodIDs["NFHS3 2005-2006"],
-      '2015-16': timeperiodIDs["NFHS4 2015-2016"],
       '2016-18': timeperiodIDs["CNNS 2016-2018"],
       '2019-20': timeperiodIDs["NFHS5 2019-2020"],
       '2023-2024': timeperiodIDs["NFHS6 2023-2024"]
     },
     MMR: {
-      '2012': timeperiodIDs["SRS 2012"],
-      '2013': timeperiodIDs["SRS 2013"],
-      '2014': timeperiodIDs["SRS 2014"],
       '2016': timeperiodIDs["SRS 2016"],
       '2018': timeperiodIDs["SRS 2018"],
       '2019': timeperiodIDs["SRS 2019"],
