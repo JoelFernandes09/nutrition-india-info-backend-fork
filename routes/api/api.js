@@ -508,7 +508,8 @@ const indicatorIDs = {
   'Households living in pucca houses': 40,
   'Households with access to electricity': 37,
   'Married women participated in household decisions': 83,
-  'Women 15-49 years of age who have and use bank account': 86
+  'Women 15-49 years of age who have and use bank account': 86,
+  'LowBMI': 515,
 };
 
 const timeperiodIDs = {
@@ -528,6 +529,8 @@ const timeperiodIDs = {
   'SRS 2016-18': 30,
   'SRS 2015-17': 31,
   'SRS 2014-16': 32,
+  'SRS 2012': 13,
+  'SRS 2013': 15,
   'SRS 2014': 18,
   'SRS 2016': 21,
   'SRS 2018': 25,
@@ -644,9 +647,9 @@ router.get('/factsheet-generator/page2', async (req, res, next) => {
 
   const timeperiodsRequired = {
     LowBirthWeight: {
+      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
-      '2023-2024': timeperiodIDs["NFHS6 2023-2024"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
     },
     Anemia: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
@@ -661,6 +664,10 @@ router.get('/factsheet-generator/page2', async (req, res, next) => {
       '2023-2024': timeperiodIDs["NFHS6 2023-2024"]
     },
     MMR: {
+      '2012': timeperiodIDs["SRS 2012"],
+      '2013': timeperiodIDs["SRS 2013"],
+      '2014': timeperiodIDs["SRS 2014"],
+      '2016': timeperiodIDs["SRS 2016"],
       '2018': timeperiodIDs["SRS 2018"],
       '2019': timeperiodIDs["SRS 2019"],
       '2020': timeperiodIDs["SRS 2020"],
@@ -786,9 +793,9 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
       '2019-20': timeperiodIDs["NFHS5 2019-2020"]
     },
     WomenNutrition: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     PostnatalCare: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
@@ -811,54 +818,54 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
       '2019-20': timeperiodIDs["NFHS5 2019-2020"]
     },
     AntenatalCare: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     BreastfedInitiation: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     ExclusiveBreastfeeding: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     ComplementaryFoods: {
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
       '2019-20': timeperiodIDs["NFHS5 2019-2020"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"]
     },
     MinimumAcceptableDiet: {
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
       '2019-20': timeperiodIDs["NFHS5 2019-2020"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"]
     },
     MinimumDietDiversity: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
     },
     MinimumMealFrequency: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
     },
     ChildFever: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
     },
     ChildARI: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     ChildDiarrhea: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
   };
 
@@ -874,6 +881,8 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
   try {
     const area = req.query.area;
     const indicators = req.query.indicators ? JSON.parse(req.query.indicators) : null;
+
+    console.log(indicators)
 
     await Promise.all(Object.keys(indicators).map(async (indicator) => {
       isDataAvailable[`${indicator}`] = false;
@@ -986,37 +995,40 @@ router.get('/factsheet-generator/page4', async (req, res, next) => {
       '2019-20': timeperiodIDs["NFHS5 2019-2020"]
     },
     AntenatalFirstTrimester: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     AntenatalCheckups4: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     WomenLiveBirth: {
       '2019-20': timeperiodIDs["NFHS5 2019-2020"]
     },
     InstitutionalDelivery: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     Immunization: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     ChildTreatment: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     WaterAndSanitation: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     HouseholdProteinIntake: {
       '2004-05': timeperiodIDs["NSSO 2004-2005"],
@@ -1068,7 +1080,7 @@ router.get('/factsheet-generator/page4', async (req, res, next) => {
       } else if (indicator == 'AdolescentPregnancies') {
         const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicators[`${indicator}`]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
         const result = await client.search(cQuery);
-        findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
+        findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["NFHS6 2023-2024"]);
         if (!findValue?.data_value) value = '';
         else value = findValue.data_value;
         chartTotal += value;
@@ -1163,14 +1175,14 @@ router.get('/factsheet-generator/page5', async (req, res, next) => {
 
   const timeperiodsRequired = {
     HouseholdBankingServices: {
-      '2011': timeperiodIDs["CENSUS 2011"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     HouseholdElectricity: {
-      '2011': timeperiodIDs["CENSUS 2011"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     HouseholdAssets: {
       '2001': timeperiodIDs["CENSUS 2001"],
@@ -1182,11 +1194,13 @@ router.get('/factsheet-generator/page5', async (req, res, next) => {
     },
     HouseholdMarriedWomen: {
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     WomenWithBankAccount: {
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
   };
 
