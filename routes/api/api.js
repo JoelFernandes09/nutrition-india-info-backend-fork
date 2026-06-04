@@ -785,7 +785,7 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
     AdolescentGirlsNutrition: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
     },
     WomenNutrition: {
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
@@ -876,8 +876,6 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
   try {
     const area = req.query.area;
     const indicators = req.query.indicators ? JSON.parse(req.query.indicators) : null;
-
-    console.log(indicators)
 
     await Promise.all(Object.keys(indicators).map(async (indicator) => {
       isDataAvailable[`${indicator}`] = false;
@@ -980,9 +978,9 @@ router.get('/factsheet-generator/page4', async (req, res, next) => {
 
   const timeperiodsRequired = {
     ContraceptivePrevalence: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-24': timeperiodIDs["NFHS6 2023-2024"],
     },
     ChildStool: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
