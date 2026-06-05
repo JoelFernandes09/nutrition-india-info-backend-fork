@@ -484,7 +484,7 @@ const indicatorIDs = {
   'Low BMI in women 15-49 years': 72,
   'Pregnant Women receiving Supplementary Food': 57,
   'Lactating Mothers receiving Supplementary Food': 513,
-  'Postnatal Care': 514,
+  'Postnatal Care': 389,
   'Introducing Complementary Foods': 28,
   'Minimum Acceptable Diet (MAD)': 5,
   'Minimum Meal Frequency': 7,
@@ -793,9 +793,9 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
       '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     PostnatalCare: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-2024': timeperiodIDs["NFHS6 2023-2024"],
     },
     PregnantWomenFood: {
       '2005-06': timeperiodIDs["NFHS3 2005-2006"],
@@ -808,9 +808,9 @@ router.get('/factsheet-generator/page3', async (req, res, next) => {
       '2019-20': timeperiodIDs["NFHS5 2019-2020"]
     },
     IFCTablets: {
-      '2005-06': timeperiodIDs["NFHS3 2005-2006"],
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
-      '2019-20': timeperiodIDs["NFHS5 2019-2020"]
+      '2019-20': timeperiodIDs["NFHS5 2019-2020"],
+      '2023-24': timeperiodIDs["NFHS6 2023-2024"],
     },
     AntenatalCare: {
       '2015-16': timeperiodIDs["NFHS4 2015-2016"],
@@ -1303,7 +1303,7 @@ router.get('/factsheet-generator/page5', async (req, res, next) => {
       } else if (indicator === 'YearsOfSchooling') {
         const cQuery = `fl=timeperiod_id%2Ctimeperiod%2Cunit_id%2Cunit_name%2Cdata_value%2Cdata_value_num%2Csubgroup_id%2Csubgroup_name%2Csubgroup_order%2Csubgroup_category%2Cstart_date%2Cend_date&fq=area_id%3A${area}&fq=indicator_id%3A${indicators[`${indicator}`]}&omitHeader=true&q=*%3A*&rows=404&sort=timeperiod_id%20asc`;
         const result = await client.search(cQuery);
-        findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["NFHS5 2019-2020"]);
+        findValue = result.response.docs.find(data => data.subgroup_id === subgroupIDs.All && data.timeperiod_id === timeperiodIDs["NFHS6 2023-2024"]);
         if (!findValue?.data_value) value = '';
         else value = findValue.data_value;
         page5Values.YearsOfSchooling = value;
