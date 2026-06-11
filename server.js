@@ -34,7 +34,7 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use(helmet());
-app.use('/api/v1', api);
+app.use('/v1', api);
 app.use('/debug', debugRoutes);
 
 app.use(middleware.errorHandler);
