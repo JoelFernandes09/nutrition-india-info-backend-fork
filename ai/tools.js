@@ -1,5 +1,14 @@
 const SolrNode = require('solr-node');
-const { dimensionMap, metricMap } = require('./dataMapping');
+const { dimensionMap } = require('./dataMapping');
+const { getAreaById } = require('./metadataLoader');
+const {
+  getTimeperiodName,
+  resolveAliasToId,
+  getCandidateChainForIndicators,
+  deriveTimeperiodFromDocs,
+  deriveTimeperiodFromRows,
+  SRS_INDICATOR_IDS,
+} = require('./timeperiodResolver');
 
 const client = new SolrNode({
   host: process.env.SOLR_DOMAIN || 'localhost',
@@ -9,8 +18,8 @@ const client = new SolrNode({
 });
 
 const ALL_SUBGROUP_ID = 6;
-const NFHS5_ID = 24;
 const MAX_TOOL_ROWS = 30;
+const MAX_BREAKDOWN_ROWS = 200;
 const SUBGROUP_IDS = {
   all: 6,
   rural: 3,
@@ -78,36 +87,6 @@ const INDICATOR_CATALOGUE = {
   'Expenditure on Cereal': 46,
 };
 
-const TIMEPERIOD_MAP = {
-  nfhs5: 24,
-  'nfhs 5': 24,
-  '2019-20': 24,
-  2019: 24,
-  2020: 24,
-  nfhs4: 20,
-  'nfhs 4': 20,
-  '2015-16': 20,
-  2015: 20,
-  2016: 20,
-  nfhs3: 6,
-  'nfhs 3': 6,
-  '2005-06': 6,
-  2005: 6,
-  2006: 6,
-  cnns: 23,
-  '2016-18': 23,
-  'srs 2022': 49,
-  srs2022: 49,
-  'srs 2020': 27,
-  srs2020: 27,
-  'srs 2018': 25,
-  srs2018: 25,
-  'census 2011': 11,
-  2011: 11,
-  'nsso 2022-2023': 33,
-  'nsso 2022': 33,
-};
-
 const TOPIC_ALIASES = {
   'child nutrition': ['Stunting', 'Wasting', 'Underweight'],
   'child malnutrition': ['Stunting', 'Wasting', 'Underweight'],
@@ -149,12 +128,6 @@ const toSafeNumber = (value) => {
   return null;
 };
 
-const isLikelyPercentage = (unitName = '', metric = '') => {
-  const unit = String(unitName || '').toLowerCase();
-  const metricText = String(metric || '').toLowerCase();
-  return unit.includes('%') || unit.includes('percent') || /percent|percentage|rate|ratio/.test(metricText);
-};
-
 const parseNumeric = (value) => {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value === 'string') {
@@ -168,63 +141,41 @@ const parseNumeric = (value) => {
   return null;
 };
 
-const isTwoDigitPercentageValue = (value) => {
-  if (typeof value !== 'number' || Number.isNaN(value)) return false;
-  return Math.abs(value) < 100;
-};
-
 const detectMetricIntent = (metric = '') => {
   const text = String(metric || '').toLowerCase();
-  if (/\b(percent|percentage|pct|share|rate|ratio)\b/.test(text)) return 'percentage';
-  if (/\b(count|number|numbers|total|population|burden|raw|absolute)\b/.test(text)) return 'absolute';
-  return 'auto';
-};
-
-const inferSeriesKind = (docs = [], metric = '') => {
-  const intent = detectMetricIntent(metric);
-  let pctSignals = 0;
-  let absSignals = 0;
-  for (const doc of docs) {
-    const dvn = parseNumeric(doc?.data_value_num);
-    const dv = parseNumeric(doc?.data_value);
-    const unit = String(doc?.unit_name || '');
-
-    if (isLikelyPercentage(unit, metric)) pctSignals += 2;
-    if (dvn != null) {
-      if (dvn <= 100) pctSignals += 1;
-      if (dvn > 100) absSignals += 2;
-    }
-    if (dv != null) {
-      if (dv <= 100) pctSignals += 1;
-      if (dv > 100) absSignals += 1;
-    }
+  if (/\b(burden|count|number|numbers|total|population|raw|absolute|numeric)\b/.test(text)) {
+    return 'burden';
   }
-  if (intent === 'percentage') {
-    return absSignals >= pctSignals + 2 ? 'absolute' : 'percentage';
-  }
-  if (intent === 'absolute') {
-    return pctSignals >= absSignals + 2 ? 'percentage' : 'absolute';
-  }
-  return pctSignals >= absSignals ? 'percentage' : 'absolute';
+  return 'percentage';
 };
 
 const pickMetricValue = (doc, kind) => {
-  const dvn = parseNumeric(doc?.data_value_num);
   const dv = parseNumeric(doc?.data_value);
+  const dvn = parseNumeric(doc?.data_value_num);
 
-  if (kind === 'percentage') {
-    if (dv != null && dv <= 100) return dv;
-    if (dvn != null && dvn <= 100) return dvn;
-    return dv ?? dvn;
+  if (kind === 'burden') return dvn ?? dv;
+  return dv ?? dvn;
+};
+
+const resolveRowUnit = (doc, seriesKind) => {
+  if (seriesKind === 'burden') return 'burden';
+
+  const solrUnit = typeof doc?.unit_name === 'string' ? doc.unit_name.trim() : '';
+  const indicatorId = Number(doc?.indicator_id);
+
+  if (SRS_INDICATOR_IDS.has(indicatorId)) {
+    if (solrUnit && solrUnit !== '%') return solrUnit;
+    return 'per 100,000 live births';
   }
 
-  if (kind === 'absolute') {
-    if (dvn != null && dvn > 100) return dvn;
-    if (dv != null && dv > 100) return dv;
-    return dvn ?? dv;
-  }
+  if (solrUnit && solrUnit !== '%' && !/%/.test(solrUnit)) return solrUnit;
+  return '%';
+};
 
-  return dvn ?? dv;
+const isBreakdownFilters = (filters = {}) => {
+  const areaParent = toSafeNumber(filters.area_parent ?? filters.areaParent ?? filters.parent_area_id);
+  const areaLevel = toSafeNumber(filters.area_level ?? filters.areaType ?? filters.area_type);
+  return areaParent !== null && areaLevel !== null && areaLevel > 1;
 };
 
 const buildFilterQueries = (filters = {}) => {
@@ -239,13 +190,15 @@ const buildFilterQueries = (filters = {}) => {
   const subdistrict = toSafeString(filters.subdistrict);
   if (subdistrict) fq.push(`${dimensionMap.subdistrict || AREA_NAME_FIELD}:"${subdistrict}"`);
 
-  const area = toSafeString(filters.area);
-  if (area) fq.push(`${dimensionMap.area || AREA_NAME_FIELD}:"${area}"`);
-
   const areaParent = toSafeNumber(filters.area_parent ?? filters.areaParent ?? filters.parent_area_id);
+  const areaLevel = toSafeNumber(filters.area_level ?? filters.areaType ?? filters.area_type);
+  const hasParentDrilldown = areaParent !== null && areaLevel !== null;
+
+  const area = toSafeString(filters.area);
+  if (area && !hasParentDrilldown) fq.push(`${dimensionMap.area || AREA_NAME_FIELD}:"${area}"`);
+
   if (areaParent !== null) fq.push(`${dimensionMap.area_parent || 'area_parent_id'}:${areaParent}`);
 
-  const areaLevel = toSafeNumber(filters.area_level ?? filters.areaType ?? filters.area_type);
   if (areaLevel !== null) fq.push(`${dimensionMap.area_level || 'area_level'}:${areaLevel}`);
 
   const subgroup = toSafeString(filters.subgroup).toLowerCase();
@@ -279,43 +232,33 @@ const buildFilterQueries = (filters = {}) => {
   return fq;
 };
 
-const rowsFromDocs = (docs = [], metricField = 'data_value_num', metric = '', mode = 'comparison') => {
+const rowsFromDocs = (docs = [], metric = '', mode = 'comparison') => {
   const indicatorNames = new Set(docs.map((d) => d?.indicator_name).filter(Boolean));
   const multiIndicator = mode !== 'trend' && indicatorNames.size > 1;
   const subgroupNames = new Set(docs.map((d) => d?.subgroup_name).filter(Boolean));
   const multiSubgroup = mode !== 'trend' && subgroupNames.size > 1;
-  const seriesKind = inferSeriesKind(docs, metric);
+  const seriesKind = detectMetricIntent(metric);
   const map = new Map();
 
   docs.forEach((doc) => {
-    const hintedMetric = parseNumeric(doc?.[metricField]);
-    const inferredMetric = pickMetricValue(doc, seriesKind);
-    const value = hintedMetric ?? inferredMetric;
+    const value = pickMetricValue(doc, seriesKind);
     if (value == null || Number.isNaN(value)) return;
 
     const area = doc?.[AREA_NAME_FIELD] != null ? String(doc[AREA_NAME_FIELD]).trim() : '';
     const indName = doc?.indicator_name != null ? String(doc.indicator_name).trim() : '';
     const subgroupName = doc?.subgroup_name != null ? String(doc.subgroup_name).trim() : '';
     const tp = doc?.timeperiod != null ? String(doc.timeperiod).trim() : '';
-    const unitRaw = doc?.unit_name;
-    let unit = typeof unitRaw === 'string' ? unitRaw.trim() : '';
-    const isPctByValueShape = isTwoDigitPercentageValue(value);
-    const pctBySeries = seriesKind === 'percentage' && isPctByValueShape;
-    const pctByUnit = isLikelyPercentage(unit, metric) && isPctByValueShape;
-    const shouldShowPercentage = pctBySeries || pctByUnit;
-    if (shouldShowPercentage && !unit) unit = '%';
-    if (!shouldShowPercentage && unit === '%') unit = '';
+    const unit = resolveRowUnit(doc, seriesKind);
 
     let label;
     if (mode === 'trend') {
       label = tp || area || indName || 'value';
     } else if (multiIndicator && indName) {
-      const base = area ? `${area} — ${indName}` : indName;
-      label = multiSubgroup && subgroupName ? `${base} — ${subgroupName}` : base;
+      const base = area ? `${area} - ${indName}` : indName;
+      label = multiSubgroup && subgroupName ? `${base} - ${subgroupName}` : base;
     } else {
       const base = area || tp || indName || 'value';
-      const baseWithSubgroup = multiSubgroup && subgroupName ? `${base} — ${subgroupName}` : base;
-      label = shouldShowPercentage ? `${baseWithSubgroup} (%)` : baseWithSubgroup;
+      label = multiSubgroup && subgroupName ? `${base} — ${subgroupName}` : base;
     }
 
     const dedupeKey =
@@ -326,7 +269,7 @@ const rowsFromDocs = (docs = [], metricField = 'data_value_num', metric = '', mo
     map.set(dedupeKey, {
       label,
       value,
-      unit: unit || '',
+      unit,
       timeperiod: tp || '',
     });
   });
@@ -334,18 +277,27 @@ const rowsFromDocs = (docs = [], metricField = 'data_value_num', metric = '', mo
   return Array.from(map.values());
 };
 
-const capRows = (rows, mode = 'comparison') => {
+const capRows = (rows, mode = 'comparison', options = {}) => {
+  const isBreakdown = options.isBreakdown === true;
+  const limit = isBreakdown ? MAX_BREAKDOWN_ROWS : MAX_TOOL_ROWS;
+
   if (!Array.isArray(rows) || rows.length === 0) return rows;
-  if (rows.length <= MAX_TOOL_ROWS) {
+  if (rows.length <= limit) {
     if (mode === 'comparison') {
+      if (isBreakdown) {
+        return [...rows].sort((a, b) => a.label.localeCompare(b.label));
+      }
       return [...rows].sort((a, b) => b.value - a.value);
     }
     return rows;
   }
   if (mode === 'trend') {
-    return rows.slice(-MAX_TOOL_ROWS);
+    return rows.slice(-limit);
   }
-  return [...rows].sort((a, b) => b.value - a.value).slice(0, MAX_TOOL_ROWS);
+  if (isBreakdown) {
+    return [...rows].sort((a, b) => a.label.localeCompare(b.label)).slice(0, limit);
+  }
+  return [...rows].sort((a, b) => b.value - a.value).slice(0, limit);
 };
 
 const resolveIndicators = (names) => {
@@ -389,24 +341,34 @@ const resolveIndicators = (names) => {
   return resolved;
 };
 
+const docsCoverAllIndicators = (docs, indicatorIds) => {
+  const found = new Set(
+    docs
+      .map((doc) => Number(doc?.indicator_id))
+      .filter(Number.isFinite)
+  );
+  return indicatorIds.every((id) => found.has(id));
+};
+
 const fetchComparison = async ({
   indicators = [],
   timeperiodId,
   metric = '',
   filters = {},
 }) => {
-  const metricField = metricMap[String(metric || '').toLowerCase()] || 'data_value_num';
   const fqBase = buildFilterQueries(filters);
+  const breakdown = isBreakdownFilters(filters);
+  const rowLimit = breakdown ? 1000 : 200;
   const allDocs = [];
 
   for (const { id } of indicators) {
     const fq = [...fqBase, `indicator_id:${id}`, `timeperiod_id:${timeperiodId}`];
     const cQuery = [
-      `fl=${AREA_NAME_FIELD},indicator_name,timeperiod,unit_name,subgroup_name,subgroup_id,data_value,data_value_num`,
+      `fl=${AREA_NAME_FIELD},indicator_id,indicator_name,timeperiod_id,timeperiod,unit_name,subgroup_name,subgroup_id,data_value,data_value_num`,
       ...fq.map((clause) => `fq=${clause}`),
       `omitHeader=true`,
       `q=*:*`,
-      `rows=200`,
+      `rows=${rowLimit}`,
     ].join('&');
 
     try {
@@ -419,31 +381,80 @@ const fetchComparison = async ({
     }
   }
 
-  const rows = rowsFromDocs(allDocs, metricField, metric, 'comparison');
-  return capRows(rows, 'comparison');
+  const rows = rowsFromDocs(allDocs, metric, 'comparison');
+  const capped = capRows(rows, 'comparison', { isBreakdown: breakdown });
+  return { rows: capped, docs: allDocs };
 };
 
-const fetchTrend = async (indicator, metric = '', filters = {}) => {
-  const metricField = metricMap[String(metric || '').toLowerCase()] || 'data_value_num';
-  const fq = [...buildFilterQueries(filters), `indicator_id:${indicator.id}`];
-  const cQuery = [
-    `fl=${AREA_NAME_FIELD},timeperiod_id,timeperiod,unit_name,subgroup_name,subgroup_id,data_value,data_value_num`,
-    ...fq.map((clause) => `fq=${clause}`),
-    `omitHeader=true`,
-    `q=*:*`,
-    `rows=50`,
-    `sort=timeperiod_id asc`,
-  ].join('&');
+const resolveTimeperiodByFetching = async ({
+  indicators,
+  fqBase,
+  timeperiodHint,
+  metric,
+  filters,
+}) => {
+  const indicatorIds = indicators.map((i) => i.id);
+  const preferredId = resolveAliasToId(timeperiodHint) || resolveAliasToId(String(timeperiodHint || '').trim());
+  const chain = getCandidateChainForIndicators(indicatorIds, preferredId);
 
-  try {
-    const result = await client.search(cQuery);
-    const docs = Array.isArray(result?.response?.docs) ? result.response.docs : [];
-    const rows = rowsFromDocs(docs, metricField, metric, 'trend');
-    return capRows(rows, 'trend');
-  } catch (err) {
-    console.error(`[Tools] Solr trend error for "${indicator.name}":`, err.message);
-    return [];
+  console.log(
+    `[Tools] Timeperiod candidates for indicators [${indicatorIds.join(', ')}]:`,
+    chain.slice(0, 8).join(', ') + (chain.length > 8 ? '...' : '')
+  );
+
+  for (const tpId of chain) {
+    const { rows, docs } = await fetchComparison({
+      indicators,
+      timeperiodId: tpId,
+      metric,
+      filters,
+    });
+
+    if (rows.length === 0) continue;
+
+    const coversAll = indicatorIds.length === 1 || docsCoverAllIndicators(docs, indicatorIds);
+    if (!coversAll) continue;
+
+    const timeperiod =
+      deriveTimeperiodFromDocs(docs) ||
+      deriveTimeperiodFromRows(rows) || {
+        id: tpId,
+        name: getTimeperiodName(tpId),
+      };
+
+    console.log(`[Tools] Resolved timeperiod from data: ${timeperiod.name} (id=${timeperiod.id})`);
+    return { rows, timeperiod };
   }
+
+  return { rows: [], timeperiod: null };
+};
+
+const resolveWithBreakdownFallback = async (params = {}) => {
+  const { filters = {}, ...rest } = params;
+  let result = await resolveTimeperiodByFetching({ ...rest, filters });
+
+  if (result.rows.length > 0 || !isBreakdownFilters(filters)) return result;
+
+  const parentId = toSafeNumber(filters.area_parent ?? filters.areaParent ?? filters.parent_area_id);
+  const breakdownLevel = toSafeNumber(filters.area_level ?? filters.areaType ?? filters.area_type);
+  const parentArea = parentId != null ? getAreaById(parentId) : null;
+  const fallbackLevel =
+    breakdownLevel === 4 ? 3 : breakdownLevel === 3 ? 2 : breakdownLevel === 2 ? 1 : null;
+
+  if (!parentArea?.name || fallbackLevel == null) return result;
+
+  const fallbackFilters = { ...filters };
+  delete fallbackFilters.area_parent;
+  delete fallbackFilters.areaParent;
+  delete fallbackFilters.parent_area_id;
+  fallbackFilters.area = parentArea.name;
+  fallbackFilters.area_level = fallbackLevel;
+
+  console.log(
+    `[Tools] Breakdown returned no rows; falling back to ${parentArea.name} (level ${fallbackLevel})`
+  );
+
+  return resolveTimeperiodByFetching({ ...rest, filters: fallbackFilters });
 };
 
 const getNutritionData = async (params = {}) => {
@@ -455,33 +466,67 @@ const getNutritionData = async (params = {}) => {
     filters = {},
   } = params;
 
-  const tpId = TIMEPERIOD_MAP[timeperiod.toLowerCase().trim()] || NFHS5_ID;
+  const fqBase = buildFilterQueries(filters);
   const resolved = resolveIndicators(indicators.length > 0 ? indicators : ['child nutrition']);
-
-  if (resolved.length === 0) {
-    console.warn('[Tools] Indicator resolution returned nothing — falling back to child nutrition defaults');
-    return fetchComparison({
-      indicators: [
-        { name: 'Stunting', id: 12 },
-        { name: 'Wasting', id: 19 },
-        { name: 'Underweight', id: 17 },
-      ],
-      timeperiodId: NFHS5_ID,
-      metric,
-      filters,
-    });
-  }
+  const indicatorSet =
+    resolved.length > 0
+      ? resolved
+      : [
+          { name: 'Stunting', id: 12 },
+          { name: 'Wasting', id: 19 },
+          { name: 'Underweight', id: 17 },
+        ];
 
   if (mode === 'trend') {
-    return fetchTrend(resolved[0], metric, filters);
+    const fq = [...buildFilterQueries(filters), `indicator_id:${indicatorSet[0].id}`];
+    const cQuery = [
+      `fl=${AREA_NAME_FIELD},timeperiod_id,timeperiod,unit_name,subgroup_name,subgroup_id,data_value,data_value_num`,
+      ...fq.map((clause) => `fq=${clause}`),
+      `omitHeader=true`,
+      `q=*:*`,
+      `rows=50`,
+      `sort=timeperiod_id asc`,
+    ].join('&');
+
+    let docs = [];
+    try {
+      const result = await client.search(cQuery);
+      docs = Array.isArray(result?.response?.docs) ? result.response.docs : [];
+    } catch (err) {
+      console.error(`[Tools] Solr trend error for "${indicatorSet[0].name}":`, err.message);
+    }
+
+    const rows = capRows(rowsFromDocs(docs, metric, 'trend'), 'trend');
+    const latest = deriveTimeperiodFromDocs(docs);
+    const earliest = docs.length
+      ? deriveTimeperiodFromDocs([docs[0]])
+      : null;
+
+    let timeperiodName = 'Multiple timeperiods';
+    if (latest?.name && earliest?.name && latest.name !== earliest.name) {
+      timeperiodName = `${earliest.name} to ${latest.name}`;
+    } else if (latest?.name) {
+      timeperiodName = latest.name;
+    }
+
+    return {
+      rows,
+      timeperiod: latest || { id: null, name: timeperiodName },
+    };
   }
 
-  return fetchComparison({
-    indicators: resolved,
-    timeperiodId: tpId,
+  const { rows, timeperiod: resolvedTimeperiod } = await resolveWithBreakdownFallback({
+    indicators: indicatorSet,
+    fqBase,
+    timeperiodHint: timeperiod,
     metric,
     filters,
   });
+
+  return {
+    rows,
+    timeperiod: resolvedTimeperiod,
+  };
 };
 
 module.exports = { getNutritionData };

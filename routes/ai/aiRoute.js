@@ -7,7 +7,7 @@ const MAX_QUERY_LENGTH = 400;
 
 router.post('/query', async (req, res, next) => {
   try {
-    const { query } = req.body;
+    const { query, responseMode, context: clientContext } = req.body;
 
     if (!query || typeof query !== 'string' || query.trim() === '') {
       return res.status(400).json({
@@ -22,7 +22,13 @@ router.post('/query', async (req, res, next) => {
       });
     }
 
-    const result = await runAgent(trimmed);
+    const options = {};
+    if (responseMode != null) options.responseMode = responseMode;
+    if (clientContext && typeof clientContext === 'object') {
+      Object.assign(options, clientContext);
+    }
+
+    const result = await runAgent(trimmed, options);
     res.json(result);
   } catch (err) {
     next(err);

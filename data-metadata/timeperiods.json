@@ -1,0 +1,175 @@
+{
+  "default": {
+    "id": 52,
+    "name": "NFHS6 2023-2024"
+  },
+  "indicatorFamilies": {
+    "srs": [509, 366, 53, 62],
+    "cnns": [515],
+    "nsso": [47, 46, 48]
+  },
+  "periods": [
+    {
+      "id": 52,
+      "name": "NFHS6 2023-2024",
+      "family": "nfhs",
+      "aliases": ["nfhs6", "nfhs 6", "nfhs-6", "2023-2024", "2023-24", "23-24", "23-2024"]
+    },
+    {
+      "id": 24,
+      "name": "NFHS5 2019-2020",
+      "family": "nfhs",
+      "aliases": ["nfhs5", "nfhs 5", "nfhs-5", "2019-2020", "2019-20", "19-20"]
+    },
+    {
+      "id": 20,
+      "name": "NFHS4 2015-2016",
+      "family": "nfhs",
+      "aliases": ["nfhs4", "nfhs 4", "2015-2016", "2015-16", "15-16"]
+    },
+    {
+      "id": 6,
+      "name": "NFHS3 2005-2006",
+      "family": "nfhs",
+      "aliases": ["nfhs3", "nfhs 3", "2005-2006", "2005-06"]
+    },
+    {
+      "id": 23,
+      "name": "CNNS 2016-2018",
+      "family": "cnns",
+      "aliases": ["cnns", "2016-2018", "2016-18"]
+    },
+    {
+      "id": 2,
+      "name": "NSSO 1999-2000",
+      "family": "nsso",
+      "aliases": ["nsso 1999", "nsso 1999-2000", "1999-2000"]
+    },
+    {
+      "id": 5,
+      "name": "NSSO 2004-2005",
+      "family": "nsso",
+      "aliases": ["nsso 2004", "nsso 2004-2005", "2004-2005"]
+    },
+    {
+      "id": 8,
+      "name": "NSSO 2009-2010",
+      "family": "nsso",
+      "aliases": ["nsso 2009", "nsso 2009-2010", "2009-2010"]
+    },
+    {
+      "id": 33,
+      "name": "NSSO 2022-2023",
+      "family": "nsso",
+      "aliases": ["nsso 2022", "nsso 2022-2023", "2022-2023", "2022-23"]
+    },
+    {
+      "id": 3,
+      "name": "CENSUS 2001",
+      "family": "census",
+      "aliases": ["census 2001", "census2001"]
+    },
+    {
+      "id": 11,
+      "name": "CENSUS 2011",
+      "family": "census",
+      "aliases": ["census 2011", "census2011"]
+    },
+    {
+      "id": 28,
+      "name": "SRS 2018-20",
+      "family": "srs",
+      "aliases": ["srs 2018-20", "srs2018-20"]
+    },
+    {
+      "id": 29,
+      "name": "SRS 2017-19",
+      "family": "srs",
+      "aliases": ["srs 2017-19", "srs2017-19"]
+    },
+    {
+      "id": 30,
+      "name": "SRS 2016-18",
+      "family": "srs",
+      "aliases": ["srs 2016-18", "srs2016-18"]
+    },
+    {
+      "id": 31,
+      "name": "SRS 2015-17",
+      "family": "srs",
+      "aliases": ["srs 2015-17", "srs2015-17"]
+    },
+    {
+      "id": 32,
+      "name": "SRS 2014-16",
+      "family": "srs",
+      "aliases": ["srs 2014-16", "srs2014-16"]
+    },
+    {
+      "id": 13,
+      "name": "SRS 2012",
+      "family": "srs",
+      "aliases": ["srs 2012", "srs2012"]
+    },
+    {
+      "id": 15,
+      "name": "SRS 2013",
+      "family": "srs",
+      "aliases": ["srs 2013", "srs2013"]
+    },
+    {
+      "id": 18,
+      "name": "SRS 2014",
+      "family": "srs",
+      "aliases": ["srs 2014", "srs2014"]
+    },
+    {
+      "id": 21,
+      "name": "SRS 2016",
+      "family": "srs",
+      "aliases": ["srs 2016", "srs2016"]
+    },
+    {
+      "id": 25,
+      "name": "SRS 2018",
+      "family": "srs",
+      "aliases": ["srs 2018", "srs2018"]
+    },
+    {
+      "id": 26,
+      "name": "SRS 2019",
+      "family": "srs",
+      "aliases": ["srs 2019", "srs2019"]
+    },
+    {
+      "id": 27,
+      "name": "SRS 2020",
+      "family": "srs",
+      "aliases": ["srs 2020", "srs2020"]
+    },
+    {
+      "id": 48,
+      "name": "SRS 2021",
+      "family": "srs",
+      "aliases": ["srs 2021", "srs2021"]
+    },
+    {
+      "id": 49,
+      "name": "SRS 2022",
+      "family": "srs",
+      "aliases": ["srs 2022", "srs2022"]
+    },
+    {
+      "id": 50,
+      "name": "SRS 2023",
+      "family": "srs",
+      "aliases": ["srs 2023", "srs2023"]
+    },
+    {
+      "id": 51,
+      "name": "SRS 2024",
+      "family": "srs",
+      "aliases": ["srs 2024", "srs2024"]
+    }
+  ]
+}

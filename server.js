@@ -3,14 +3,12 @@ const rateLimit  = require('express-rate-limit');
 const cors       = require('cors');
 const helmet     = require('helmet');
 const middleware = require('./utils/middleware');
-const auth       = require('./utils/middleware').authHandler;
 const requestIp  = require('request-ip');
 
 require('dotenv').config();
 
 const api     = require('./routes/api/api');
 const aiRoute = require('./routes/ai/aiRoute');
-const debugRoutes = require('./routes/debug.routes');
 
 const app = express();
 
@@ -35,7 +33,6 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(helmet());
 app.use('/v1', api);
-app.use('/debug', debugRoutes);
 
 app.use(middleware.errorHandler);
 

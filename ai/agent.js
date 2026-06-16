@@ -2,11 +2,14 @@
 
 const OpenAI = require('openai');
 const { getNutritionData } = require('./tools');
-const { findAreaByName, findSubgroup } = require('./metadataLoader');
+const { findAreaByName, findSubgroup, resolveAreaContextFromQuery } = require('./metadataLoader');
+const { parseTimeperiodFromQuery, deriveTimeperiodFromRows } = require('./timeperiodResolver');
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const FALLBACK = { chart: null, insights: ['Unable to process request'] };
+const FALLBACK = { responseMode: 'text', chart: null, answer: 'Unable to process request', insights: [] };
+
+const ALLOWED_RESPONSE_MODES = new Set(['auto', 'text', 'visual']);
 
 const ALLOWED_CHART_TYPES = new Set(['bar', 'line', 'pie', 'area', 'donut', 'radar', 'radialBar', 'composed']);
 const DEFAULT_TOKEN_BUDGET = Number(process.env.AI_MAX_TOKENS_PER_REQUEST) || 2000;
@@ -34,8 +37,8 @@ Rules:
   Otherwise use specific names like: "Stunting", "IMR", "MMR", "4+ ANC"
 - "mode": use "trend" ONLY when the query asks about change over time for ONE indicator.
   Use "comparison" for everything else.
-- "timeperiod": if a survey round is mentioned use its key: "nfhs5", "nfhs4", "nfhs3",
-  "cnns", "srs 2022", "srs 2020", "census 2011", "nsso 2022".
+- "timeperiod": if a survey round is mentioned use its key: "nfhs6", "nfhs5", "nfhs4", "nfhs3",
+  "2023-24", "2019-20", "cnns", "srs 2024", "srs 2022", "census 2011", "nsso 2022".
   Leave empty string if not mentioned.
 `.trim();
 
@@ -61,10 +64,34 @@ Return ONLY valid JSON in exactly this format:
 Rules:
 - Copy each source row into "chart.data" with the same keys: "label" (string), "value" (number), "unit" (string), "timeperiod" (string).
 - Set "xKey" to "label" and "yKey" to "value" unless a pie/donut layout clearly needs name vs value (still use keys present on each object).
-- "unit" and "timeperiod" may be empty strings on rows; preserve them.
+- Preserve "unit" on each row exactly as provided ("%" for percentages, "burden" for absolute counts, or the rate unit string for mortality indicators).
+- When unit is "%", insights should describe values as percentages. For rate units (e.g. per 100,000 live births), do not call values percentages or burden.
 - "insights" must be an array of short strings with genuine observations from the numbers provided.
 - ${chartTypeInstruction ?? 'Choose the most appropriate chart type for the data'}
 - Supported types: bar, line, area, pie, donut, radar, radialBar, composed
+`.trim();
+
+const buildTextAnalysisPrompt = () =>
+  `
+You are a nutrition data assistant for an India nutrition dashboard.
+
+You will receive a user question and optional survey data JSON ("meta" and "data").
+Use ONLY values from the payload — do not invent numbers.
+
+Return ONLY valid JSON in exactly this format:
+
+{
+  "responseMode": "text",
+  "answer": "",
+  "insights": []
+}
+
+Rules:
+- "answer" is a concise natural-language reply (1-3 sentences) that directly answers the question.
+- Include the numeric value with its unit (% for percentages, plain numbers for burden, or the rate unit when provided).
+- Mention area and timeperiod when present in the data.
+- "insights" is optional — 0-2 short extra notes, or an empty array.
+- Do NOT include a chart.
 `.trim();
 
 
@@ -86,6 +113,85 @@ const isValidOutput = (output) => {
   if (!output.insights.every((s) => typeof s === 'string')) return false;
   return true;
 };
+
+const isValidTextOutput = (output) => {
+  if (!output || typeof output !== 'object') return false;
+  if (typeof output.answer !== 'string' || output.answer.trim() === '') return false;
+  if (!Array.isArray(output.insights)) return false;
+  if (!output.insights.every((s) => typeof s === 'string')) return false;
+  return true;
+};
+
+const normalizeResponseMode = (mode) => {
+  const key = String(mode || 'auto').toLowerCase().trim();
+  return ALLOWED_RESPONSE_MODES.has(key) ? key : 'auto';
+};
+
+const detectResponseMode = (query, context, rowCount, intent, forcedMode = 'auto', chartTypeInstruction = null) => {
+  if (forcedMode === 'text') return 'text';
+  if (forcedMode === 'visual') return 'visual';
+
+  if (chartTypeInstruction) return 'visual';
+
+  const qLower = String(query || '').toLowerCase();
+
+  if (
+    /\b(compare|comparison|comparision|versus|vs\.?|chart|graph|plot|visuali[sz]e|breakdown|rank|ranking|top\s+\d+|districts|states|subdistricts|trend|over time|across|between)\b/.test(
+      qLower
+    )
+  ) {
+    return 'visual';
+  }
+
+  if (context?.breakdown) return 'visual';
+  if (intent?.mode === 'trend') return 'visual';
+  if (Array.isArray(context?.subgroups) && context.subgroups.length > 1) return 'visual';
+  if (Array.isArray(intent?.indicators) && intent.indicators.length > 1) return 'visual';
+  if (rowCount > 1) return 'visual';
+
+  return 'text';
+};
+
+const formatValueForText = (value, unit) => {
+  if (unit === '%') return `${value}%`;
+  if (unit === 'burden') return Number(value).toLocaleString('en-IN');
+  if (unit) return `${value} ${unit}`;
+  return String(value);
+};
+
+const formatTextAnswerFromRows = (rows, valueKind = 'percentage') => {
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+
+  const unit = rows[0]?.unit || (valueKind === 'burden' ? 'burden' : '%');
+  const fmt = (row) => formatValueForText(row.value, row.unit || unit);
+  const tp = rows[0]?.timeperiod ? ` (${rows[0].timeperiod})` : '';
+
+  if (rows.length === 1) {
+    const row = rows[0];
+    return `${row.label}: ${fmt(row)}${tp}.`;
+  }
+
+  const sorted = [...rows].sort((a, b) => b.value - a.value);
+  const top = sorted.slice(0, 3).map((row) => `${row.label} (${fmt(row)})`);
+  const bottom = sorted.length > 3
+    ? sorted.slice(-2).map((row) => `${row.label} (${fmt(row)})`)
+    : [];
+
+  let summary = `Across ${rows.length} areas${tp}: highest values are ${top.join(', ')}`;
+  if (bottom.length) summary += `; lowest are ${bottom.join(', ')}`;
+  return `${summary}.`;
+};
+
+const buildResponseMeta = (context, metricHint, rowCount, responseMode, timeperiod = null) => ({
+  rowCount,
+  source: 'solr',
+  responseMode,
+  valueKind: metricHint === 'burden' ? 'burden' : 'percentage',
+  timeperiod: timeperiod
+    ? { id: timeperiod.id ?? null, name: timeperiod.name || '' }
+    : null,
+  context,
+});
 
 const logUsage = (label, usage) => {
   if (!usage || typeof usage !== 'object') {
@@ -140,33 +246,47 @@ const withTokenMeta = (data, tokenParts = {}, allowed = DEFAULT_TOKEN_BUDGET) =>
   };
 };
 
+const applyValueUnitsToChart = (output, valueKind = 'percentage', solrRows = []) => {
+  if (!output?.chart || typeof output.chart !== 'object') return output;
+
+  const defaultUnit = valueKind === 'burden' ? 'burden' : '%';
+
+  if (Array.isArray(solrRows) && solrRows.length > 0) {
+    output.chart.data = solrRows.map((row) => ({
+      label: row.label,
+      value: row.value,
+      unit: row.unit || defaultUnit,
+      timeperiod: row.timeperiod || '',
+    }));
+    if (!output.chart.xKey) output.chart.xKey = 'label';
+    if (!output.chart.yKey) output.chart.yKey = 'value';
+    return output;
+  }
+
+  if (!Array.isArray(output.chart.data)) return output;
+  output.chart.data = output.chart.data.map((row) => ({
+    ...row,
+    unit: defaultUnit,
+  }));
+  return output;
+};
+
 const detectMetricFromQuery = (query = '') => {
   const q = String(query || '').toLowerCase();
-  if (/\b(percent|percentage|pct|share|rate|ratio)\b/.test(q)) return 'percentage';
-  if (/\b(count|number|numbers|total|population|burden|absolute|raw)\b/.test(q)) return 'absolute';
-  return '';
+  if (/\b(burden|count|number|numbers|total|population|raw|absolute|numeric)\b/.test(q)) {
+    return 'burden';
+  }
+  return 'percentage';
 };
 
 const inferContextFromQuery = (query = '') => {
-  const q = String(query || '');
-  const qLower = q.toLowerCase();
-  const inferred = {};
+  const qLower = String(query || '').toLowerCase();
+  const inferred = { ...resolveAreaContextFromQuery(query) };
 
-  const area = findAreaByName(q, { partial: true });
-  if (area?.name) {
-    inferred.area_id = area.id;
-    inferred.area = area.name;
-    if (area.level != null) inferred.area_level = area.level;
-  }
-
-  const isDistrictWise = /\bdistrict[-\s]?wise\b|\bdistricts?\b/.test(qLower);
-  if (isDistrictWise) {
-    inferred.breakdown = 'district';
-    if (area?.level === 2 && Number.isFinite(area.id)) {
-      inferred.area_parent = area.id;
-      inferred.area_level = 3;
-      delete inferred.area;
-    }
+  const parsedTp = parseTimeperiodFromQuery(query);
+  if (parsedTp?.name) {
+    inferred.timeperiod = parsedTp.name;
+    inferred.timeperiod_id = parsedTp.id;
   }
 
   const subgroups = [];
@@ -196,6 +316,11 @@ const detectIndicatorHintsFromQuery = (query = '') => {
   if (/\bfull immunization\b/.test(q)) {
     return ['Full Immunization'];
   }
+  if (/\bstunting\b/.test(q)) return ['Stunting'];
+  if (/\bwasting\b/.test(q)) return ['Wasting'];
+  if (/\bunderweight\b/.test(q)) return ['Underweight'];
+  if (/\bimr\b/.test(q)) return ['IMR'];
+  if (/\bmmr\b/.test(q)) return ['MMR'];
   return [];
 };
 
@@ -204,10 +329,39 @@ const resolveContext = (context = {}) => {
   if (typeof context !== 'object' || !context) return next;
 
   const areaInput = String(context.area || '').trim();
-  if (areaInput) {
+  const breakdownInput = String(context.breakdown || '').trim().toLowerCase();
+
+  if (areaInput && breakdownInput) {
+    const breakdownQuery =
+      breakdownInput === 'state'
+        ? `${areaInput} states`
+        : breakdownInput === 'district'
+          ? `${areaInput} districts`
+          : `${areaInput} subdistricts`;
+    Object.assign(next, resolveAreaContextFromQuery(breakdownQuery));
+  } else if (areaInput) {
     const matchedArea = findAreaByName(areaInput, { partial: true });
-    next.area = matchedArea?.name || areaInput;
-    if (matchedArea?.level != null) next.area_level = matchedArea.level;
+    if (matchedArea) {
+      next.area_id = matchedArea.id;
+      next.area = matchedArea.name;
+      if (matchedArea.level != null) next.area_level = matchedArea.level;
+    } else {
+      next.area = areaInput;
+    }
+  }
+
+  const areaParent = Number(context.area_parent ?? context.areaParent);
+  if (Number.isFinite(areaParent)) next.area_parent = areaParent;
+
+  const areaLevel = Number(context.area_level ?? context.areaLevel);
+  if (Number.isFinite(areaLevel)) next.area_level = areaLevel;
+
+  if (breakdownInput === 'state' || breakdownInput === 'district' || breakdownInput === 'subdistrict') {
+    next.breakdown = breakdownInput;
+  }
+
+  if (Number.isFinite(next.area_parent) && Number.isFinite(next.area_level)) {
+    delete next.area;
   }
 
   const subgroupInput = String(context.subgroup || '').trim();
@@ -218,11 +372,6 @@ const resolveContext = (context = {}) => {
 
   const timeperiodInput = String(context.timeperiod || '').trim();
   if (timeperiodInput) next.timeperiod = timeperiodInput;
-
-  const focusTopics = Array.isArray(context.focusTopics) ? context.focusTopics : [];
-  if (focusTopics.length > 0) {
-    next.focusTopics = focusTopics.map((t) => String(t || '').trim()).filter(Boolean).slice(0, 6);
-  }
 
   return next;
 };
@@ -307,6 +456,120 @@ const parseAnalysisJson = async (messages, maxTokens) => {
   return { output: retryParsed, content: retryContent, usage: retry.usage };
 };
 
+const buildTextResponse = async ({
+  cleanQuery,
+  payload,
+  solrData,
+  rowCount,
+  valueKind,
+}) => {
+  const quickAnswer = rowCount > 0 ? formatTextAnswerFromRows(solrData, valueKind) : null;
+  const noDataAnswer =
+    'No matching data was found for this query. Try adding a survey round (e.g. NFHS-5) or checking the area name.';
+
+  if (rowCount === 1 && quickAnswer) {
+    return { answer: quickAnswer, insights: [], usage: toUsageSummary(null) };
+  }
+
+  if (payload && rowCount > 0) {
+    try {
+      const maxTokens = rowCount > 30 ? 700 : rowCount > 10 ? 550 : rowCount > 3 ? 450 : 320;
+      const { output, usage } = await runTextAnalysis(cleanQuery, payload, maxTokens);
+      if (isValidTextOutput(output)) {
+        return {
+          answer: output.answer.trim(),
+          insights: output.insights || [],
+          usage,
+        };
+      }
+    } catch (err) {
+      console.error('[AI Agent] ── text analysis failed:', err.message);
+    }
+  }
+
+  if (quickAnswer) {
+    return { answer: quickAnswer, insights: [], usage: toUsageSummary(null) };
+  }
+
+  return {
+    answer: noDataAnswer,
+    insights: [],
+    usage: toUsageSummary(null),
+  };
+};
+
+const runTextAnalysis = async (cleanQuery, payload, maxTokens = 280) => {
+  const userMessage = payload
+    ? `${cleanQuery}\n\nSurvey payload:\n${JSON.stringify(payload)}`
+    : cleanQuery;
+
+  const messages = [
+    { role: 'system', content: buildTextAnalysisPrompt() },
+    { role: 'user', content: userMessage },
+  ];
+
+  const { output, usage } = await parseAnalysisJson(messages, maxTokens);
+  return { output, usage: toUsageSummary(usage) };
+};
+
+const runVisualAnalysis = async ({
+  cleanQuery,
+  payload,
+  chartTypeInstruction,
+  maxTokens,
+  valueKind,
+  intentUsage,
+  usedTimeperiod,
+  context,
+  metricHint,
+  rowCount,
+}) => {
+  if (!payload?.data?.length) {
+    return withTokenMeta(
+      {
+        responseMode: 'text',
+        answer:
+          'No matching data was found for this query in the dataset. The indicator may not be available at the requested geographic level — try a broader area or a different survey round.',
+        chart: null,
+        insights: [],
+        timeperiod: null,
+        meta: buildResponseMeta(context, metricHint, 0, 'text', null),
+      },
+      { intent: intentUsage, analysis: toUsageSummary(null) }
+    );
+  }
+
+  const userMessage = `${cleanQuery}\n\nSurvey payload:\n${JSON.stringify(payload)}`;
+
+  const messages = [
+    { role: 'system', content: buildAnalysisPrompt(chartTypeInstruction) },
+    { role: 'user', content: userMessage },
+  ];
+
+  const { output, content, usage } = await parseAnalysisJson(messages, maxTokens);
+  const responseSize = typeof content === 'string' ? content.length : 0;
+  console.log(`[AI Agent] ── analysis response size (chars): ${responseSize}`);
+  console.log('[AI Agent] ── response:', content);
+
+  if (!isValidOutput(output)) {
+    console.warn('[AI Agent] ── visual validation failed, returning fallback');
+    return withTokenMeta(FALLBACK, { intent: intentUsage, analysis: toUsageSummary(usage) });
+  }
+
+  const styled = applyValueUnitsToChart(
+    {
+      ...output,
+      responseMode: 'visual',
+      answer: formatTextAnswerFromRows(payload.data, valueKind),
+      timeperiod: usedTimeperiod,
+      meta: buildResponseMeta(context, metricHint, rowCount, 'visual', usedTimeperiod),
+    },
+    valueKind,
+    payload.data
+  );
+  return withTokenMeta(styled, { intent: intentUsage, analysis: toUsageSummary(usage) });
+};
+
 const runAgent = async (userQuery, rawContext = {}) => {
   const queryLen = userQuery.length;
   console.log(`[AI Agent] ── query length: ${queryLen}`);
@@ -314,10 +577,11 @@ const runAgent = async (userQuery, rawContext = {}) => {
 
   const chartTypeMatch = userQuery.match(/You MUST use chart type "([^"]+)"\./);
   const chartTypeInstruction = chartTypeMatch
-    ? `You MUST set chart type to exactly "${chartTypeMatch[1]}" — no exceptions`
+    ? `You MUST set chart type to exactly "${chartTypeMatch[1]}" - no exceptions`
     : null;
   const cleanQuery = userQuery.replace(/\s*You MUST use chart type "[^"]+"\./, '').trim();
   const metricHint = detectMetricFromQuery(cleanQuery);
+  const forcedResponseMode = normalizeResponseMode(rawContext.responseMode);
 
   const context = { ...inferContextFromQuery(cleanQuery), ...resolveContext(rawContext) };
   const { intent, usage: intentUsage } = await extractIntent(cleanQuery);
@@ -328,31 +592,87 @@ const runAgent = async (userQuery, rawContext = {}) => {
   }
 
   let solrData = null;
-  if (intent) {
-    try {
-      const result = await getNutritionData({
-        indicators: indicatorHints.length > 0 ? indicatorHints : (intent.indicators || []),
-        mode: intent.mode || 'comparison',
-        timeperiod: context.timeperiod || intent.timeperiod || '',
-        metric: metricHint,
-        filters: {
-          area: context.area || '',
-          area_level: context.area_level,
-          area_parent: context.area_parent,
-          subgroup: context.subgroup || '',
-          subgroups: context.subgroups || [],
-        },
-      });
-      if (Array.isArray(result) && result.length > 0) {
-        solrData = result;
-      }
-    } catch (err) {
-      console.error('[AI Agent] ── solr fetch failed:', err.message);
+  let usedTimeperiod = null;
+  try {
+    const indicatorList =
+      indicatorHints.length > 0 ? indicatorHints : intent?.indicators || [];
+    const timeperiodHint =
+      context.timeperiod ||
+      (context.timeperiod_id != null ? String(context.timeperiod_id) : '') ||
+      intent?.timeperiod ||
+      '';
+    const nutritionResult = await getNutritionData({
+      indicators: indicatorList,
+      mode: intent?.mode || 'comparison',
+      timeperiod: timeperiodHint,
+      metric: metricHint,
+      filters: {
+        area: context.area || '',
+        area_level: context.area_level,
+        area_parent: context.area_parent,
+        subgroup: context.subgroup || '',
+        subgroups: context.subgroups || [],
+      },
+    });
+    if (nutritionResult?.rows?.length > 0) {
+      solrData = nutritionResult.rows;
+      usedTimeperiod =
+        nutritionResult.timeperiod ||
+        deriveTimeperiodFromRows(nutritionResult.rows) ||
+        null;
+    } else if (Array.isArray(nutritionResult) && nutritionResult.length > 0) {
+      solrData = nutritionResult;
     }
+  } catch (err) {
+    console.error('[AI Agent] ── solr fetch failed:', err.message);
+  }
+
+  if (usedTimeperiod?.name) {
+    console.log(`[AI Agent] ── timeperiod used: ${usedTimeperiod.name} (id=${usedTimeperiod.id})`);
   }
 
   const rowCount = Array.isArray(solrData) ? solrData.length : 0;
   console.log(`[AI Agent] ── solr row count: ${rowCount}`);
+
+  const resolvedResponseMode = detectResponseMode(
+    cleanQuery,
+    context,
+    rowCount,
+    intent,
+    forcedResponseMode,
+    chartTypeInstruction
+  );
+  console.log(`[AI Agent] ── response mode: ${resolvedResponseMode} (requested: ${forcedResponseMode})`);
+
+  const valueKind = metricHint === 'burden' ? 'burden' : 'percentage';
+  const payload = solrData
+    ? {
+        meta: buildResponseMeta(context, metricHint, rowCount, resolvedResponseMode, usedTimeperiod),
+        data: solrData,
+      }
+    : null;
+
+  if (resolvedResponseMode === 'text') {
+    const { answer, insights, usage: analysisUsage } = await buildTextResponse({
+      cleanQuery,
+      payload,
+      solrData,
+      rowCount,
+      valueKind,
+    });
+
+    return withTokenMeta(
+      {
+        responseMode: 'text',
+        answer,
+        chart: null,
+        insights,
+        timeperiod: usedTimeperiod,
+        meta: buildResponseMeta(context, metricHint, rowCount, 'text', usedTimeperiod),
+      },
+      { intent: intentUsage, analysis: analysisUsage || toUsageSummary(null) }
+    );
+  }
 
   let maxTokens = 600;
   if (rowCount < 10) maxTokens = 500;
@@ -360,39 +680,19 @@ const runAgent = async (userQuery, rawContext = {}) => {
   if (rowCount > 30) maxTokens = 1200;
   if (rowCount > 60) maxTokens = 1500;
 
-  const payload = solrData
-    ? {
-        meta: {
-          rowCount,
-          source: 'solr',
-          note: 'Aggregated survey data',
-          context,
-        },
-        data: solrData,
-      }
-    : null;
-
-  const userMessage = payload
-    ? `${cleanQuery}\n\nSurvey payload:\n${JSON.stringify(payload)}`
-    : cleanQuery;
-
   try {
-    const messages = [
-      { role: 'system', content: buildAnalysisPrompt(chartTypeInstruction) },
-      { role: 'user', content: userMessage },
-    ];
-
-    const { output, content, usage } = await parseAnalysisJson(messages, maxTokens);
-    const responseSize = typeof content === 'string' ? content.length : 0;
-    console.log(`[AI Agent] ── analysis response size (chars): ${responseSize}`);
-    console.log('[AI Agent] ── response:', content);
-
-    if (!isValidOutput(output)) {
-      console.warn('[AI Agent] ── validation failed, returning fallback');
-      return withTokenMeta(FALLBACK, { intent: intentUsage, analysis: toUsageSummary(usage) });
-    }
-
-    return withTokenMeta(output, { intent: intentUsage, analysis: toUsageSummary(usage) });
+    return await runVisualAnalysis({
+      cleanQuery,
+      payload,
+      chartTypeInstruction,
+      maxTokens,
+      valueKind,
+      intentUsage,
+      usedTimeperiod,
+      context,
+      metricHint,
+      rowCount,
+    });
   } catch (error) {
     console.error('[AI Agent] ── analysis error:', error.message ?? error);
     return withTokenMeta(FALLBACK, { intent: intentUsage, analysis: toUsageSummary(null) });
