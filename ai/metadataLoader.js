@@ -2,6 +2,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const {
+  detectCompareAcrossSubgroups,
+  detectExplicitPairs,
+} = require('./subgroupResolver');
 
 const DATA_DIR = path.join(__dirname, '..', 'data-metadata');
 
@@ -307,7 +311,22 @@ const detectBreakdownLevel = (qLower) => {
   return null;
 };
 
+const detectCompareAcrossTimeperiods = (qLower) =>
+  /\b(across|over|between)\s+(different\s+)?(time\s*periods?|survey\s*rounds?|surveys?|rounds?)\b/.test(qLower) ||
+  /\b(time\s*periods?|survey\s*rounds?|surveys?|rounds?)\s+(comparison|compare|comparision|wise)\b/.test(qLower) ||
+  /\b(compare|comparison|comparision)\b[\s\S]{0,80}\b(time\s*periods?|survey\s*rounds?|surveys?|rounds?)\b/.test(qLower) ||
+  /\b(time\s*periods?|survey\s*rounds?|surveys?|rounds?)\b[\s\S]{0,40}\b(compare|comparison|comparision)\b/.test(qLower);
+
 const detectScopedComparisonLevel = (qLower, primary) => {
+  if (detectCompareAcrossTimeperiods(qLower)) return null;
+  if (detectCompareAcrossSubgroups(qLower)) return null;
+  if (detectExplicitPairs(qLower)) return null;
+  if (
+    /\b(rural|urban|male|female|sc|st|subgroups?)\b/i.test(qLower) &&
+    !/\b(districts|states|subdistricts)\b/i.test(qLower)
+  ) {
+    return null;
+  }
   if (!/\b(compar(?:e|ison|ision)|comparision)\b/.test(qLower)) return null;
   if (/\b(compare|comparison|comparision|across|among)\s+states\b/.test(qLower)) return null;
   if (!primary) return null;

@@ -4,6 +4,10 @@ const OpenAI = require('openai');
 const { getNutritionData } = require('./tools');
 const { findAreaByName, findSubgroup, resolveAreaContextFromQuery } = require('./metadataLoader');
 const { parseTimeperiodFromQuery, deriveTimeperiodFromRows } = require('./timeperiodResolver');
+const {
+  parseSubgroupsFromQuery,
+  formatMissingSubgroupsMessage,
+} = require('./subgroupResolver');
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -144,7 +148,9 @@ const detectResponseMode = (query, context, rowCount, intent, forcedMode = 'auto
   }
 
   if (context?.breakdown) return 'visual';
+  if (context?.compareAcrossTimeperiods) return 'visual';
   if (intent?.mode === 'trend') return 'visual';
+  if (context?.compareAcrossSubgroups) return 'visual';
   if (Array.isArray(context?.subgroups) && context.subgroups.length > 1) return 'visual';
   if (Array.isArray(intent?.indicators) && intent.indicators.length > 1) return 'visual';
   if (rowCount > 1) return 'visual';
@@ -159,30 +165,54 @@ const formatValueForText = (value, unit) => {
   return String(value);
 };
 
-const formatTextAnswerFromRows = (rows, valueKind = 'percentage') => {
+const formatTextAnswerFromRows = (rows, valueKind = 'percentage', options = {}) => {
   if (!Array.isArray(rows) || rows.length === 0) return null;
 
   const unit = rows[0]?.unit || (valueKind === 'burden' ? 'burden' : '%');
   const fmt = (row) => formatValueForText(row.value, row.unit || unit);
   const tp = rows[0]?.timeperiod ? ` (${rows[0].timeperiod})` : '';
+  const dimension = options.compareAcrossTimeperiods
+    ? 'timeperiods'
+    : options.compareAcrossSubgroups
+      ? 'subgroups'
+      : 'areas';
+
+  const missingNote = options.subgroupCoverage?.missing?.length
+    ? formatMissingSubgroupsMessage(options.subgroupCoverage)
+    : '';
 
   if (rows.length === 1) {
     const row = rows[0];
-    return `${row.label}: ${fmt(row)}${tp}.`;
+    const answer = `${row.label}: ${fmt(row)}${tp}.`;
+    return missingNote ? `${answer} ${missingNote}` : answer;
   }
 
-  const sorted = [...rows].sort((a, b) => b.value - a.value);
+  const sorted = options.compareAcrossTimeperiods
+    ? [...rows].sort((a, b) => (a.timeperiod_id || 0) - (b.timeperiod_id || 0))
+    : [...rows].sort((a, b) => b.value - a.value);
   const top = sorted.slice(0, 3).map((row) => `${row.label} (${fmt(row)})`);
   const bottom = sorted.length > 3
     ? sorted.slice(-2).map((row) => `${row.label} (${fmt(row)})`)
     : [];
 
-  let summary = `Across ${rows.length} areas${tp}: highest values are ${top.join(', ')}`;
+  let summary = `Across ${rows.length} ${dimension}${tp}: highest values are ${top.join(', ')}`;
   if (bottom.length) summary += `; lowest are ${bottom.join(', ')}`;
-  return `${summary}.`;
+  summary += '.';
+  if (missingNote) summary += ` ${missingNote}`;
+  return summary;
 };
 
-const buildResponseMeta = (context, metricHint, rowCount, responseMode, timeperiod = null) => ({
+const appendSubgroupNotes = (answer, insights = [], subgroupCoverage = null) => {
+  const note = formatMissingSubgroupsMessage(subgroupCoverage);
+  if (!note) return { answer, insights };
+  const nextInsights = Array.isArray(insights) ? [...insights] : [];
+  if (!nextInsights.includes(note)) nextInsights.push(note);
+  if (!answer) return { answer: note, insights: nextInsights };
+  if (answer.includes(note)) return { answer, insights: nextInsights };
+  return { answer: `${answer} ${note}`, insights: nextInsights };
+};
+
+const buildResponseMeta = (context, metricHint, rowCount, responseMode, timeperiod = null, subgroupCoverage = null) => ({
   rowCount,
   source: 'solr',
   responseMode,
@@ -190,6 +220,7 @@ const buildResponseMeta = (context, metricHint, rowCount, responseMode, timeperi
   timeperiod: timeperiod
     ? { id: timeperiod.id ?? null, name: timeperiod.name || '' }
     : null,
+  subgroupCoverage: subgroupCoverage || null,
   context,
 });
 
@@ -246,10 +277,25 @@ const withTokenMeta = (data, tokenParts = {}, allowed = DEFAULT_TOKEN_BUDGET) =>
   };
 };
 
-const applyValueUnitsToChart = (output, valueKind = 'percentage', solrRows = []) => {
+const deriveChartIndicatorName = (rows = [], fallbackNames = []) => {
+  const fromRows = [...new Set(rows.map((row) => String(row?.indicator || '').trim()).filter(Boolean))];
+  if (fromRows.length === 1) return fromRows[0];
+  if (fromRows.length > 1) return fromRows.join(', ');
+
+  const fromHints = [...new Set(fallbackNames.map((name) => String(name || '').trim()).filter(Boolean))];
+  if (fromHints.length === 1) return fromHints[0];
+  if (fromHints.length > 1) return fromHints.join(', ');
+
+  return '';
+};
+
+const applyValueUnitsToChart = (output, valueKind = 'percentage', solrRows = [], indicatorNames = [], options = {}) => {
   if (!output?.chart || typeof output.chart !== 'object') return output;
 
   const defaultUnit = valueKind === 'burden' ? 'burden' : '%';
+  const indicatorName = deriveChartIndicatorName(solrRows, indicatorNames);
+  if (indicatorName) output.chart.indicatorName = indicatorName;
+  if (options.preserveOrder) output.chart.preserveOrder = true;
 
   if (Array.isArray(solrRows) && solrRows.length > 0) {
     output.chart.data = solrRows.map((row) => ({
@@ -257,6 +303,8 @@ const applyValueUnitsToChart = (output, valueKind = 'percentage', solrRows = [])
       value: row.value,
       unit: row.unit || defaultUnit,
       timeperiod: row.timeperiod || '',
+      timeperiod_id: row.timeperiod_id ?? null,
+      indicator: row.indicator || indicatorName || '',
     }));
     if (!output.chart.xKey) output.chart.xKey = 'label';
     if (!output.chart.yKey) output.chart.yKey = 'value';
@@ -271,6 +319,16 @@ const applyValueUnitsToChart = (output, valueKind = 'percentage', solrRows = [])
   return output;
 };
 
+const detectCompareAcrossTimeperiods = (query = '') => {
+  const q = String(query || '').toLowerCase();
+  return (
+    /\b(across|over|between)\s+(different\s+)?(time\s*periods?|survey\s*rounds?|surveys?|rounds?)\b/.test(q) ||
+    /\b(time\s*periods?|survey\s*rounds?|surveys?|rounds?)\s+(comparison|compare|comparision|wise)\b/.test(q) ||
+    /\b(compare|comparison|comparision)\b[\s\S]{0,80}\b(time\s*periods?|survey\s*rounds?|surveys?|rounds?)\b/.test(q) ||
+    /\b(time\s*periods?|survey\s*rounds?|surveys?|rounds?)\b[\s\S]{0,40}\b(compare|comparison|comparision)\b/.test(q)
+  );
+};
+
 const detectMetricFromQuery = (query = '') => {
   const q = String(query || '').toLowerCase();
   if (/\b(burden|count|number|numbers|total|population|raw|absolute|numeric)\b/.test(q)) {
@@ -283,26 +341,27 @@ const inferContextFromQuery = (query = '') => {
   const qLower = String(query || '').toLowerCase();
   const inferred = { ...resolveAreaContextFromQuery(query) };
 
-  const parsedTp = parseTimeperiodFromQuery(query);
-  if (parsedTp?.name) {
-    inferred.timeperiod = parsedTp.name;
-    inferred.timeperiod_id = parsedTp.id;
+  if (detectCompareAcrossTimeperiods(query)) {
+    inferred.compareAcrossTimeperiods = true;
+  } else {
+    const parsedTp = parseTimeperiodFromQuery(query);
+    if (parsedTp?.name) {
+      inferred.timeperiod = parsedTp.name;
+      inferred.timeperiod_id = parsedTp.id;
+    }
   }
 
-  const subgroups = [];
-  const hasRural = /\brural\b/.test(qLower);
-  const hasUrban = /\burban\b/.test(qLower);
-  if (hasRural) subgroups.push('Rural');
-  if (hasUrban) subgroups.push('Urban');
-  if (!hasRural && !hasUrban && /\bfemale\b|\bwomen\b|\bgirls?\b/.test(qLower)) subgroups.push('Female');
-  if (!hasRural && !hasUrban && /\bmale\b|\bmen\b|\bboys?\b/.test(qLower)) subgroups.push('Male');
-  if (/\bsc\b|scheduled caste/.test(qLower)) subgroups.push('SC');
-  if (/\bst\b|scheduled tribe/.test(qLower)) subgroups.push('ST');
-
-  if (subgroups.length > 1) {
-    inferred.subgroups = Array.from(new Set(subgroups));
-  } else if (subgroups.length === 1) {
-    inferred.subgroup = subgroups[0];
+  const subgroupInfo = parseSubgroupsFromQuery(query);
+  if (subgroupInfo.compareAcrossSubgroups) {
+    inferred.compareAcrossSubgroups = true;
+    inferred.subgroups = subgroupInfo.subgroups;
+    inferred.requestedSubgroups = subgroupInfo.requestedSubgroups;
+  } else if (subgroupInfo.subgroups.length > 1) {
+    inferred.subgroups = subgroupInfo.subgroups;
+    inferred.requestedSubgroups = subgroupInfo.requestedSubgroups;
+  } else if (subgroupInfo.subgroup) {
+    inferred.subgroup = subgroupInfo.subgroup;
+    inferred.requestedSubgroups = subgroupInfo.requestedSubgroups;
   }
 
   return inferred;
@@ -368,6 +427,18 @@ const resolveContext = (context = {}) => {
   if (subgroupInput) {
     const matchedSubgroup = findSubgroup(subgroupInput, { partial: true });
     next.subgroup = matchedSubgroup?.name || subgroupInput;
+  }
+
+  const subgroupsInput = Array.isArray(context.subgroups)
+    ? context.subgroups.map((s) => String(s || '').trim()).filter(Boolean)
+    : [];
+  if (subgroupsInput.length > 0) {
+    next.subgroups = subgroupsInput.map((name) => findSubgroup(name, { partial: true })?.name || name);
+    next.requestedSubgroups = next.subgroups;
+  }
+
+  if (context.compareAcrossSubgroups === true) {
+    next.compareAcrossSubgroups = true;
   }
 
   const timeperiodInput = String(context.timeperiod || '').trim();
@@ -462,13 +533,22 @@ const buildTextResponse = async ({
   solrData,
   rowCount,
   valueKind,
+  subgroupCoverage = null,
+  compareAcrossSubgroups = false,
 }) => {
-  const quickAnswer = rowCount > 0 ? formatTextAnswerFromRows(solrData, valueKind) : null;
-  const noDataAnswer =
-    'No matching data was found for this query. Try adding a survey round (e.g. NFHS-5) or checking the area name.';
+  const textOptions = {
+    compareAcrossSubgroups,
+    subgroupCoverage,
+  };
+  const quickAnswer =
+    rowCount > 0 ? formatTextAnswerFromRows(solrData, valueKind, textOptions) : null;
+  const missingNote = formatMissingSubgroupsMessage(subgroupCoverage);
+  const noDataAnswer = missingNote
+    ? missingNote
+    : 'No matching data was found for this query. Try adding a survey round (e.g. NFHS-5) or checking the area name.';
 
   if (rowCount === 1 && quickAnswer) {
-    return { answer: quickAnswer, insights: [], usage: toUsageSummary(null) };
+    return { answer: quickAnswer, insights: missingNote ? [missingNote] : [], usage: toUsageSummary(null) };
   }
 
   if (payload && rowCount > 0) {
@@ -476,9 +556,10 @@ const buildTextResponse = async ({
       const maxTokens = rowCount > 30 ? 700 : rowCount > 10 ? 550 : rowCount > 3 ? 450 : 320;
       const { output, usage } = await runTextAnalysis(cleanQuery, payload, maxTokens);
       if (isValidTextOutput(output)) {
+        const merged = appendSubgroupNotes(output.answer.trim(), output.insights || [], subgroupCoverage);
         return {
-          answer: output.answer.trim(),
-          insights: output.insights || [],
+          answer: merged.answer,
+          insights: merged.insights,
           usage,
         };
       }
@@ -488,7 +569,7 @@ const buildTextResponse = async ({
   }
 
   if (quickAnswer) {
-    return { answer: quickAnswer, insights: [], usage: toUsageSummary(null) };
+    return { answer: quickAnswer, insights: missingNote ? [missingNote] : [], usage: toUsageSummary(null) };
   }
 
   return {
@@ -523,17 +604,23 @@ const runVisualAnalysis = async ({
   context,
   metricHint,
   rowCount,
+  indicatorNames = [],
+  preserveChartOrder = false,
+  subgroupCoverage = null,
+  compareAcrossSubgroups = false,
 }) => {
   if (!payload?.data?.length) {
+    const missingNote = formatMissingSubgroupsMessage(subgroupCoverage);
     return withTokenMeta(
       {
         responseMode: 'text',
         answer:
+          missingNote ||
           'No matching data was found for this query in the dataset. The indicator may not be available at the requested geographic level — try a broader area or a different survey round.',
         chart: null,
-        insights: [],
+        insights: missingNote ? [missingNote] : [],
         timeperiod: null,
-        meta: buildResponseMeta(context, metricHint, 0, 'text', null),
+        meta: buildResponseMeta(context, metricHint, 0, 'text', null, subgroupCoverage),
       },
       { intent: intentUsage, analysis: toUsageSummary(null) }
     );
@@ -560,13 +647,32 @@ const runVisualAnalysis = async ({
     {
       ...output,
       responseMode: 'visual',
-      answer: formatTextAnswerFromRows(payload.data, valueKind),
+      answer: formatTextAnswerFromRows(payload.data, valueKind, {
+        compareAcrossTimeperiods: preserveChartOrder,
+        compareAcrossSubgroups,
+        subgroupCoverage,
+      }),
+      insights: output.insights || [],
       timeperiod: usedTimeperiod,
-      meta: buildResponseMeta(context, metricHint, rowCount, 'visual', usedTimeperiod),
+      meta: buildResponseMeta(
+        context,
+        metricHint,
+        rowCount,
+        'visual',
+        usedTimeperiod,
+        subgroupCoverage
+      ),
     },
     valueKind,
-    payload.data
+    payload.data,
+    indicatorNames,
+    { preserveOrder: preserveChartOrder }
   );
+
+  const merged = appendSubgroupNotes(styled.answer, styled.insights, subgroupCoverage);
+  styled.answer = merged.answer;
+  styled.insights = merged.insights;
+
   return withTokenMeta(styled, { intent: intentUsage, analysis: toUsageSummary(usage) });
 };
 
@@ -593,17 +699,29 @@ const runAgent = async (userQuery, rawContext = {}) => {
 
   let solrData = null;
   let usedTimeperiod = null;
+  const indicatorList =
+    indicatorHints.length > 0 ? indicatorHints : intent?.indicators || [];
+  const compareAcrossTimeperiods = Boolean(context.compareAcrossTimeperiods);
+  const compareAcrossSubgroups = Boolean(context.compareAcrossSubgroups);
+  const requestedSubgroups = Array.isArray(context.requestedSubgroups)
+    ? context.requestedSubgroups
+    : Array.isArray(context.subgroups) && context.subgroups.length > 0
+      ? context.subgroups
+      : context.subgroup
+        ? [context.subgroup]
+        : [];
+  const queryMode = compareAcrossTimeperiods ? 'trend' : intent?.mode || 'comparison';
+  let subgroupCoverage = null;
   try {
-    const indicatorList =
-      indicatorHints.length > 0 ? indicatorHints : intent?.indicators || [];
-    const timeperiodHint =
-      context.timeperiod ||
-      (context.timeperiod_id != null ? String(context.timeperiod_id) : '') ||
-      intent?.timeperiod ||
-      '';
+    const timeperiodHint = compareAcrossTimeperiods
+      ? ''
+      : context.timeperiod ||
+        (context.timeperiod_id != null ? String(context.timeperiod_id) : '') ||
+        intent?.timeperiod ||
+        '';
     const nutritionResult = await getNutritionData({
       indicators: indicatorList,
-      mode: intent?.mode || 'comparison',
+      mode: queryMode,
       timeperiod: timeperiodHint,
       metric: metricHint,
       filters: {
@@ -612,8 +730,10 @@ const runAgent = async (userQuery, rawContext = {}) => {
         area_parent: context.area_parent,
         subgroup: context.subgroup || '',
         subgroups: context.subgroups || [],
+        requestedSubgroups,
       },
     });
+    subgroupCoverage = nutritionResult?.subgroupCoverage || null;
     if (nutritionResult?.rows?.length > 0) {
       solrData = nutritionResult.rows;
       usedTimeperiod =
@@ -647,7 +767,17 @@ const runAgent = async (userQuery, rawContext = {}) => {
   const valueKind = metricHint === 'burden' ? 'burden' : 'percentage';
   const payload = solrData
     ? {
-        meta: buildResponseMeta(context, metricHint, rowCount, resolvedResponseMode, usedTimeperiod),
+        meta: {
+          ...buildResponseMeta(
+            context,
+            metricHint,
+            rowCount,
+            resolvedResponseMode,
+            usedTimeperiod,
+            subgroupCoverage
+          ),
+          indicators: indicatorList,
+        },
         data: solrData,
       }
     : null;
@@ -659,6 +789,8 @@ const runAgent = async (userQuery, rawContext = {}) => {
       solrData,
       rowCount,
       valueKind,
+      subgroupCoverage,
+      compareAcrossSubgroups,
     });
 
     return withTokenMeta(
@@ -668,7 +800,14 @@ const runAgent = async (userQuery, rawContext = {}) => {
         chart: null,
         insights,
         timeperiod: usedTimeperiod,
-        meta: buildResponseMeta(context, metricHint, rowCount, 'text', usedTimeperiod),
+        meta: buildResponseMeta(
+          context,
+          metricHint,
+          rowCount,
+          'text',
+          usedTimeperiod,
+          subgroupCoverage
+        ),
       },
       { intent: intentUsage, analysis: analysisUsage || toUsageSummary(null) }
     );
@@ -692,6 +831,10 @@ const runAgent = async (userQuery, rawContext = {}) => {
       context,
       metricHint,
       rowCount,
+      indicatorNames: indicatorList,
+      preserveChartOrder: compareAcrossTimeperiods,
+      subgroupCoverage,
+      compareAcrossSubgroups,
     });
   } catch (error) {
     console.error('[AI Agent] ── analysis error:', error.message ?? error);

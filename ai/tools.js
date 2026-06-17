@@ -2,6 +2,10 @@ const SolrNode = require('solr-node');
 const { dimensionMap } = require('./dataMapping');
 const { getAreaById } = require('./metadataLoader');
 const {
+  getSubgroupId,
+  computeSubgroupCoverage,
+} = require('./subgroupResolver');
+const {
   getTimeperiodName,
   resolveAliasToId,
   getCandidateChainForIndicators,
@@ -20,15 +24,6 @@ const client = new SolrNode({
 const ALL_SUBGROUP_ID = 6;
 const MAX_TOOL_ROWS = 30;
 const MAX_BREAKDOWN_ROWS = 200;
-const SUBGROUP_IDS = {
-  all: 6,
-  rural: 3,
-  urban: 7,
-  male: 15,
-  female: 14,
-  sc: 4,
-  st: 5,
-};
 
 const INDICATOR_CATALOGUE = {
   Stunting: 12,
@@ -201,18 +196,20 @@ const buildFilterQueries = (filters = {}) => {
 
   if (areaLevel !== null) fq.push(`${dimensionMap.area_level || 'area_level'}:${areaLevel}`);
 
-  const subgroup = toSafeString(filters.subgroup).toLowerCase();
-  if (subgroup && SUBGROUP_IDS[subgroup] != null) {
-    fq[0] = `subgroup_id:${SUBGROUP_IDS[subgroup]}`;
+  const subgroup = toSafeString(filters.subgroup);
+  const subgroupId = getSubgroupId(subgroup);
+  if (subgroupId != null) {
+    fq[0] = `subgroup_id:${subgroupId}`;
   }
   const subgroups = Array.isArray(filters.subgroups)
-    ? filters.subgroups.map((s) => toSafeString(s).toLowerCase()).filter(Boolean)
+    ? filters.subgroups.map((s) => toSafeString(s)).filter(Boolean)
     : [];
-  const subgroupIds = subgroups.map((s) => SUBGROUP_IDS[s]).filter((id) => Number.isFinite(id));
+  const subgroupIds = subgroups.map((s) => getSubgroupId(s)).filter((id) => Number.isFinite(id));
   if (subgroupIds.length > 0) {
-    fq[0] = subgroupIds.length === 1
-      ? `subgroup_id:${subgroupIds[0]}`
-      : `(${subgroupIds.map((id) => `subgroup_id:${id}`).join(' OR ')})`;
+    fq[0] =
+      subgroupIds.length === 1
+        ? `subgroup_id:${subgroupIds[0]}`
+        : `(${subgroupIds.map((id) => `subgroup_id:${id}`).join(' OR ')})`;
   }
 
   const year = filters.year;
@@ -232,7 +229,8 @@ const buildFilterQueries = (filters = {}) => {
   return fq;
 };
 
-const rowsFromDocs = (docs = [], metric = '', mode = 'comparison') => {
+const rowsFromDocs = (docs = [], metric = '', mode = 'comparison', options = {}) => {
+  const subgroupComparison = options.subgroupComparison === true;
   const indicatorNames = new Set(docs.map((d) => d?.indicator_name).filter(Boolean));
   const multiIndicator = mode !== 'trend' && indicatorNames.size > 1;
   const subgroupNames = new Set(docs.map((d) => d?.subgroup_name).filter(Boolean));
@@ -252,13 +250,23 @@ const rowsFromDocs = (docs = [], metric = '', mode = 'comparison') => {
 
     let label;
     if (mode === 'trend') {
-      label = tp || area || indName || 'value';
+      if (multiIndicator && indName && tp) {
+        label = `${tp} — ${indName}`;
+      } else {
+        label = tp || area || indName || 'value';
+      }
     } else if (multiIndicator && indName) {
       const base = area ? `${area} - ${indName}` : indName;
       label = multiSubgroup && subgroupName ? `${base} - ${subgroupName}` : base;
     } else {
       const base = area || tp || indName || 'value';
-      label = multiSubgroup && subgroupName ? `${base} — ${subgroupName}` : base;
+      if (subgroupComparison && subgroupName) {
+        label = subgroupName;
+      } else if (multiSubgroup && subgroupName) {
+        label = `${base} — ${subgroupName}`;
+      } else {
+        label = base;
+      }
     }
 
     const dedupeKey =
@@ -271,6 +279,10 @@ const rowsFromDocs = (docs = [], metric = '', mode = 'comparison') => {
       value,
       unit,
       timeperiod: tp || '',
+      timeperiod_id: Number.isFinite(Number(doc?.timeperiod_id)) ? Number(doc.timeperiod_id) : null,
+      indicator: indName || '',
+      subgroup: subgroupName || '',
+      subgroup_id: Number.isFinite(Number(doc?.subgroup_id)) ? Number(doc.subgroup_id) : null,
     });
   });
 
@@ -284,18 +296,19 @@ const capRows = (rows, mode = 'comparison', options = {}) => {
   if (!Array.isArray(rows) || rows.length === 0) return rows;
   if (rows.length <= limit) {
     if (mode === 'comparison') {
-      if (isBreakdown) {
-        return [...rows].sort((a, b) => a.label.localeCompare(b.label));
-      }
       return [...rows].sort((a, b) => b.value - a.value);
+    }
+    if (mode === 'trend') {
+      return [...rows].sort((a, b) => (a.timeperiod_id || 0) - (b.timeperiod_id || 0));
     }
     return rows;
   }
   if (mode === 'trend') {
-    return rows.slice(-limit);
+    const sorted = [...rows].sort((a, b) => (a.timeperiod_id || 0) - (b.timeperiod_id || 0));
+    return sorted.length <= limit ? sorted : sorted.slice(-limit);
   }
   if (isBreakdown) {
-    return [...rows].sort((a, b) => a.label.localeCompare(b.label)).slice(0, limit);
+    return [...rows].sort((a, b) => b.value - a.value).slice(0, limit);
   }
   return [...rows].sort((a, b) => b.value - a.value).slice(0, limit);
 };
@@ -359,6 +372,14 @@ const fetchComparison = async ({
   const fqBase = buildFilterQueries(filters);
   const breakdown = isBreakdownFilters(filters);
   const rowLimit = breakdown ? 1000 : 200;
+  const requestedSubgroups = Array.isArray(filters.requestedSubgroups)
+    ? filters.requestedSubgroups
+    : Array.isArray(filters.subgroups) && filters.subgroups.length > 0
+      ? filters.subgroups
+      : filters.subgroup
+        ? [filters.subgroup]
+        : [];
+  const subgroupComparison = requestedSubgroups.length > 1;
   const allDocs = [];
 
   for (const { id } of indicators) {
@@ -381,9 +402,10 @@ const fetchComparison = async ({
     }
   }
 
-  const rows = rowsFromDocs(allDocs, metric, 'comparison');
+  const rows = rowsFromDocs(allDocs, metric, 'comparison', { subgroupComparison });
   const capped = capRows(rows, 'comparison', { isBreakdown: breakdown });
-  return { rows: capped, docs: allDocs };
+  const subgroupCoverage = computeSubgroupCoverage(requestedSubgroups, allDocs);
+  return { rows: capped, docs: allDocs, subgroupCoverage };
 };
 
 const resolveTimeperiodByFetching = async ({
@@ -403,7 +425,7 @@ const resolveTimeperiodByFetching = async ({
   );
 
   for (const tpId of chain) {
-    const { rows, docs } = await fetchComparison({
+    const { rows, docs, subgroupCoverage } = await fetchComparison({
       indicators,
       timeperiodId: tpId,
       metric,
@@ -423,10 +445,10 @@ const resolveTimeperiodByFetching = async ({
       };
 
     console.log(`[Tools] Resolved timeperiod from data: ${timeperiod.name} (id=${timeperiod.id})`);
-    return { rows, timeperiod };
+    return { rows, timeperiod, subgroupCoverage };
   }
 
-  return { rows: [], timeperiod: null };
+  return { rows: [], timeperiod: null, subgroupCoverage: computeSubgroupCoverage(filters.requestedSubgroups || filters.subgroups || [], []) };
 };
 
 const resolveWithBreakdownFallback = async (params = {}) => {
@@ -478,13 +500,25 @@ const getNutritionData = async (params = {}) => {
         ];
 
   if (mode === 'trend') {
-    const fq = [...buildFilterQueries(filters), `indicator_id:${indicatorSet[0].id}`];
+    const indicatorFq =
+      indicatorSet.length === 1
+        ? `indicator_id:${indicatorSet[0].id}`
+        : `(${indicatorSet.map((i) => `indicator_id:${i.id}`).join(' OR ')})`;
+    const requestedSubgroups = Array.isArray(filters.requestedSubgroups)
+      ? filters.requestedSubgroups
+      : Array.isArray(filters.subgroups) && filters.subgroups.length > 0
+        ? filters.subgroups
+        : filters.subgroup
+          ? [filters.subgroup]
+          : [];
+    const subgroupComparison = requestedSubgroups.length > 1;
+    const fq = [...buildFilterQueries(filters), indicatorFq];
     const cQuery = [
-      `fl=${AREA_NAME_FIELD},timeperiod_id,timeperiod,unit_name,subgroup_name,subgroup_id,data_value,data_value_num`,
+      `fl=${AREA_NAME_FIELD},indicator_id,indicator_name,timeperiod_id,timeperiod,unit_name,subgroup_name,subgroup_id,data_value,data_value_num`,
       ...fq.map((clause) => `fq=${clause}`),
       `omitHeader=true`,
       `q=*:*`,
-      `rows=50`,
+      `rows=200`,
       `sort=timeperiod_id asc`,
     ].join('&');
 
@@ -493,13 +527,27 @@ const getNutritionData = async (params = {}) => {
       const result = await client.search(cQuery);
       docs = Array.isArray(result?.response?.docs) ? result.response.docs : [];
     } catch (err) {
-      console.error(`[Tools] Solr trend error for "${indicatorSet[0].name}":`, err.message);
+      console.error(`[Tools] Solr timeperiod-comparison error:`, err.message);
     }
 
-    const rows = capRows(rowsFromDocs(docs, metric, 'trend'), 'trend');
-    const latest = deriveTimeperiodFromDocs(docs);
-    const earliest = docs.length
-      ? deriveTimeperiodFromDocs([docs[0]])
+    const rows = capRows(
+      rowsFromDocs(docs, metric, 'trend', { subgroupComparison }),
+      'trend'
+    );
+    const subgroupCoverage = computeSubgroupCoverage(requestedSubgroups, docs);
+    const timeperiodIds = [...new Set(rows.map((r) => r.timeperiod_id).filter(Number.isFinite))].sort(
+      (a, b) => a - b
+    );
+    const earliest = timeperiodIds.length
+      ? { id: timeperiodIds[0], name: rows.find((r) => r.timeperiod_id === timeperiodIds[0])?.timeperiod || getTimeperiodName(timeperiodIds[0]) }
+      : null;
+    const latest = timeperiodIds.length
+      ? {
+          id: timeperiodIds[timeperiodIds.length - 1],
+          name:
+            rows.find((r) => r.timeperiod_id === timeperiodIds[timeperiodIds.length - 1])?.timeperiod ||
+            getTimeperiodName(timeperiodIds[timeperiodIds.length - 1]),
+        }
       : null;
 
     let timeperiodName = 'Multiple timeperiods';
@@ -509,13 +557,16 @@ const getNutritionData = async (params = {}) => {
       timeperiodName = latest.name;
     }
 
+    console.log(`[Tools] Timeperiod comparison: ${rows.length} rows across ${timeperiodIds.length} timeperiods`);
+
     return {
       rows,
-      timeperiod: latest || { id: null, name: timeperiodName },
+      timeperiod: latest || earliest || { id: null, name: timeperiodName },
+      subgroupCoverage,
     };
   }
 
-  const { rows, timeperiod: resolvedTimeperiod } = await resolveWithBreakdownFallback({
+  const { rows, timeperiod: resolvedTimeperiod, subgroupCoverage } = await resolveWithBreakdownFallback({
     indicators: indicatorSet,
     fqBase,
     timeperiodHint: timeperiod,
@@ -526,6 +577,7 @@ const getNutritionData = async (params = {}) => {
   return {
     rows,
     timeperiod: resolvedTimeperiod,
+    subgroupCoverage,
   };
 };
 
