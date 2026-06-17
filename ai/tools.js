@@ -187,14 +187,21 @@ const buildFilterQueries = (filters = {}) => {
 
   const areaParent = toSafeNumber(filters.area_parent ?? filters.areaParent ?? filters.parent_area_id);
   const areaLevel = toSafeNumber(filters.area_level ?? filters.areaType ?? filters.area_type);
+  const areaId = toSafeNumber(filters.area_id ?? filters.areaId);
   const hasParentDrilldown = areaParent !== null && areaLevel !== null;
 
   const area = toSafeString(filters.area);
-  if (area && !hasParentDrilldown) fq.push(`${dimensionMap.area || AREA_NAME_FIELD}:"${area}"`);
-
-  if (areaParent !== null) fq.push(`${dimensionMap.area_parent || 'area_parent_id'}:${areaParent}`);
-
-  if (areaLevel !== null) fq.push(`${dimensionMap.area_level || 'area_level'}:${areaLevel}`);
+  if (hasParentDrilldown) {
+    if (areaParent !== null) fq.push(`${dimensionMap.area_parent || 'area_parent_id'}:${areaParent}`);
+    if (areaLevel !== null) fq.push(`${dimensionMap.area_level || 'area_level'}:${areaLevel}`);
+  } else if (areaId !== null) {
+    fq.push(`area_id:${areaId}`);
+  } else if (area) {
+    fq.push(`${dimensionMap.area || AREA_NAME_FIELD}:"${area}"`);
+    if (areaLevel !== null) fq.push(`${dimensionMap.area_level || 'area_level'}:${areaLevel}`);
+  } else if (areaLevel !== null) {
+    fq.push(`${dimensionMap.area_level || 'area_level'}:${areaLevel}`);
+  }
 
   const subgroup = toSafeString(filters.subgroup);
   const subgroupId = getSubgroupId(subgroup);

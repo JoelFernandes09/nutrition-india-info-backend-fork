@@ -726,6 +726,7 @@ const runAgent = async (userQuery, rawContext = {}) => {
       metric: metricHint,
       filters: {
         area: context.area || '',
+        area_id: context.area_id,
         area_level: context.area_level,
         area_parent: context.area_parent,
         subgroup: context.subgroup || '',
