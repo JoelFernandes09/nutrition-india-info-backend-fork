@@ -32,7 +32,7 @@ const limiter = rateLimit({
 app.use(limiter);
 // app.disable('x-powered-by')
 app.use(helmet())
-app.use('/v1', api);
+app.use('/api', api);
 
 
 app.use(middleware.errorHandler)
